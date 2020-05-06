@@ -33,6 +33,14 @@
     <guava.version>25.0-jre</guava.version>
   </properties>
 
+  <repositories>
+    <repository>
+      <id>neverpile</id>
+      <name>Neverpile Apache Maven Packages</name>
+      <url>https://registry.neverpile.com/repository/maven-releases/</url>
+    </repository>
+  </repositories>
+  
   <dependencyManagement>
     <dependencies>
       <!-- Spring-Boot -->
