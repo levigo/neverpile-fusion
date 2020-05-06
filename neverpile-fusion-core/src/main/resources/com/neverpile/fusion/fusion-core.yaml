@@ -1,0 +1,528 @@
+openapi: 3.0.1
+
+info:
+  title: Neverpile fusion API
+  contact:
+    name: levigo solutions gmbh
+    url: https://levigo.de
+    email: solutions@levigo.de
+  version: 1.0.0
+  
+tags:
+- name: Collection
+  description: Collection related APIs
+
+paths:
+  /api/v1/collections/{collectionID}:
+    get:
+      tags:
+      - Collection
+      summary: Get the current version of a collection
+      
+      parameters:
+      - name: collectionID
+        in: path
+        description: The ID of the collection to be fetched
+        schema:
+          type: string
+        required: true
+      responses:
+        200:
+          description: Collection found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collection'
+        400:
+          description: Invalid collectionID supplied
+        404:
+          description: Collection not found
+
+    put:
+      tags:
+      - Collection
+      summary: Save a new version of a collection
+      description: Replace the current version of the collection with a new one provided in the request body.
+        This operation uses optimistic concurrency control to prevent lost updates. 
+        To that end, the collection to be saved must carry a version timestamp matching the timestamp 
+        of the previous version. 
+
+      parameters:
+      - name: collectionID
+        in: path
+        description: The ID of the dossier to be saved
+        schema:
+          type: string
+        required: true
+
+      requestBody:
+        description: the new collection version
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Collection'
+        required: true
+
+      responses:
+        201:
+          description: New version saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collection'
+        409:
+          description: Version conflict detected
+        404:
+          description: Collection not found
+
+  /api/v1/collections/{collectionID}/history:
+    get:
+      tags:
+      - Collection
+      - History
+      summary: Get the list of versions of a collection by ID. The result
+        is a list ov version timestamps.
+      
+      parameters:
+      - name: collectionID
+        in: path
+        description: The ID of the collection for which to return the history
+        schema:
+          type: string
+        required: true
+      responses:
+        200:
+          description: Collection history found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  format: date-time
+        400:
+          description: Invalid collectionID supplied
+        404:
+          description: Collection not found
+
+  /api/v1/collections/{collectionID}/history/{versionTimestamp}:
+    get:
+      tags:
+      - Collection
+      - History
+      summary: Get a particular version of a collection
+      
+      parameters:
+      - name: collectionID
+        in: path
+        description: The ID of the dossier to be fetched
+        schema:
+          type: string
+        required: true
+      - name: versionTimestamp
+        in: path
+        description: The timestamp of the version to be fetched
+        schema:
+          type: string
+          format: date-time
+        required: true
+      responses:
+        200:
+          description: Collection found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collection'
+        400:
+          description: Invalid collectionID and/or version timestamp supplied
+        404:
+          description: Collection not found
+
+  /api/v1/collection-types:
+    get:
+      tags:
+      - CollectionType
+      summary: Get the list of all collection types
+      
+      responses:
+        200:
+          description: List of collection types found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionType'
+
+
+  /api/v1/collection-types/{id}:
+    get:
+      tags:
+      - CollectionType
+      summary: Get a collection type by ID
+
+      parameters:
+      - name: id
+        in: path
+        description: The ID of the collection-type to be fetched
+        schema:
+          type: string
+        required: true
+      
+      responses:
+        200:
+          description: Collection type found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionTypeList'
+        400:
+          description: Invalid type id supplied
+        404:
+          description: Collection type not found
+
+    put:
+      tags:
+      - CollectionType
+      summary: Create or update a collection type
+
+      parameters:
+      - name: id
+        in: path
+        description: The ID of the collection-type to be created/updated
+        schema:
+          type: string
+        required: true
+      
+      requestBody:
+        description: The collection type specification
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollectionType'
+        required: false
+
+      responses:
+        201:
+          description: Collection type created/updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionType'
+        400:
+          description: Invalid type id supplied
+        404:
+          description: Collection type not found
+          
+  /api/v1/layout/{typeId}:
+    get:
+      tags:
+      - View
+      summary: Get the laid out views for a collection based on the applicable layout rules.
+      
+      parameters:
+      - name: typeId
+        in: path
+        description: The id of the collection type to use.
+        required: true
+        
+      requestBody:
+        description: The collection for which to generate views.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Collection'
+        required: true
+
+      responses:
+        200:
+          description: View generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollectionLayout'
+
+components:
+  schemas:
+    Collection:
+      description: A collection represents a set of elements which are relevant in a certain business or domain
+        'context. There are several possible types of elements:'
+        * general artifacts like a document, an image or a media stream,
+        * reference to another collection within the same system,
+        * paged media (e.g. PDFs, scanned images, etc.) which can be arbitrarily composed from any
+        * number of sources to form a virtual document.
+        
+        Collections are generally versioned, so that updates do not replace the old state but simply add
+        a new version with old versions still being accessible for reference purposes.
+      type: object
+      properties:
+        id:
+          type: string
+          description: The collection's unique id. In general, an id is just a string. Implementations may however, subject
+            ids to a certain format like UUIDs, numeric values etc.
+        versionTimestamp:
+          type: string
+          format: date-time
+          description: The time when this version of the collection was created. The version timestamp must be unique
+            among all versions of a collection with a certain id.
+        typeId:
+          type: string
+          description: The collections type's id. The type id references a `CollectionType` via its unique id.
+        dateCreated:
+          type: string
+          format: date-time
+          description: The time when the collection was created. 
+        dateModified:
+          type: string
+          format: date-time
+          description: The time when the collection was last modified. In contrast to the property `versionTimestamp`
+            this property holds the business-relevant time which may be different from the technical version timestamp.
+        state:
+          type: string
+          enum:
+            - Active
+            - Closed
+            - MarkedForDeletion
+          description: The state of the collection (with the last/current version of the collection representing the current state).
+            * `Active` - the collection is currently in active use. New versions can be create at any time.
+            * `Closed` - the collection is closed. It can be viewed, but creating new versions and thus changing its state
+              is restricted to users holding special permissions. 
+            * `MarkedForDeletion`- the collection is marked for deletion. Viewing the collection is restricted to users holding
+              special permissions. 
+        createdBy:
+          type: string
+          description: The user who created this particular version of the collection.
+        metadata:
+          $ref: '#/components/schemas/Metadata'
+        elements:
+          type: array
+          description: A collection of collection elements.
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: The element's unique id. In general, an id is just a string. Implementations may however, 
+                  subject ids to a certain format like UUIDs, numeric values etc. The id must be unique among all 
+                  elements of the collection.
+              metadata:
+                $ref: '#/components/schemas/Metadata'
+              dateCreated:
+                type: string
+                format: date-time
+                description: The time when the element was created. 
+              dateModified:
+                type: string
+                format: date-time
+                description: The time when the element was last modified.
+              tags:
+                type: array
+                description: The element's tags. Tags describe an element and are usually used to build a view layout
+                  for a collection.
+                items:
+                  type: string
+                  pattern: '[\w .-_/]+'
+              specification:
+                allOf:
+                  - type: object
+                    title: Artifact
+                    description: A general artifact which could be, for example, a document, an image or a media stream.
+                    properties:
+                      contentURI: 
+                        type: string
+                        description: The URI by which the artifact can be addressed. This may or may not be also a URL.
+                          If it is not a URL, further, integration-specific resolution must be performed to turn a URI
+                          into a URL suitable for loading the actual artifact data.
+                      mediaType:
+                        $ref: '#/components/schemas/MediaType'
+                  - type: object
+                    title: CollectionReference
+                    description: A reference to another collection within the same system.
+                    properties:
+                      collectionId:
+                        type: string
+                        description: The id of the referenced collection.
+                  - type: object 
+                    title: CompositePaged
+                    description: A collection element consisting of paged media (e.g. PDFs, scanned images, etc.) which can
+                      be arbitrarily composed from any number of sources to form a virtual document.
+                    properties:
+                      annotationData:
+                        $ref: "#/components/schemas/AnnotationData"
+                      pageSequences:
+                        type: array
+                        items:
+                          title: PageSequence
+                          type: object 
+                          properties:
+                            mediaType:
+                              $ref: '#/components/schemas/MediaType'
+                            contentURI:
+                              type: string
+                              description: The URI by which the part document can be addressed. This may or may not be 
+                                also a URL. If it is not a URL, further, integration-specific resolution must be performed
+                                to turn a URI into a URL suitable for loading the actual document data.
+                            pageIdices:
+                              type: array
+                              nullable: true
+                              description: The pages selected from the source document for inclusion into the composite 
+                                paged. Indices are zero-based, i.e. the first page is index 0. As a special case, if this
+                                property is null (but _not_ the empty array!) in implies _all_ pages of the source to be
+                                included. 
+                              items:
+                                type: number
+                                minimum: 0
+                            annotationData:
+                              $ref: "#/components/schemas/AnnotationData"
+    AnnotationData:
+      description: Annotations are markings, textual notes or other forms of supplementary information added to a
+        paged document that can be applied by a user without changing the underlying document information. Anotations
+        can be transported in various forms, e.g. as binary streams, XML, JSON etc.
+        
+        For `CompositePaged`s, annotation data can be managed as one stream/object set for the whole element or per 
+        individual page sequence. Only one should be used for a particular element.
+      anyOf:
+        - type: string
+          format: binary
+          description: Annotation data in binary form.
+        - type: object
+          description: Annotation data as JSON objects. The schema of those objects is subject to the requirements of
+            the particular format implementation. 
+    CollectionType:
+      type: object
+      description: A type definition for a collection. Each collection belongs to one of the defined collection types. The type describes
+        the tags permitted for elements of a collection and contains rules that are used to generate views.
+      properties:
+        id:
+          type: string
+          description: The type's unique id. In general, an id is just a string. Implementations may however, 
+            subject ids to a certain format like UUIDs, numeric values etc.
+        description:
+          type: string
+          description: The description of the collection type.
+        name:
+          type: string
+          description: The name of the collection type.
+        permittedTags:
+          type: array
+          description: The list of permitted tags for elements of this collection type.
+          items:
+            type: string
+            pattern: '[\w .-_/]+'
+        allowAllTags:
+          type: boolean
+          description: Whether to allow arbitrary tags in addition to the ones defined in `permittedTags`.
+        views:
+          type: array
+          description: The list of views defined for this collection type.
+          items:
+            type: object
+            title: View
+            description: A definition of a collection view.
+            properties:
+              name:
+                type: string
+                description: The name of the view. Usually displayed to the user when presenting a choice of views.
+              elementRules:
+                type: array
+                description: A list of rules used generate the view based on the collection's elements. The rules are 
+                  executed/called once per element.
+                items:
+                  anyOf:
+                    - $ref: "#/components/schemas/JavaScriptRule"
+              treeRules:
+                type: array
+                description: A list of rules used finalize the view. They can be used for applications like sorting,
+                  pruning the tree etc.
+                items:
+                  anyOf:
+                    - $ref: "#/components/schemas/JavaScriptRule"
+    JavaScriptRule:
+      type: object
+      description: A JavaScript-based definition of a rule
+      properties:
+        name:
+          type: string
+          description: The name of the rule
+        scriptCode:
+          type: string
+          description: The JavaScript code making up the rule.
+    MediaType:
+      description: An RFC 6863 media type
+      type: string
+      pattern: '[A-Za-z][A-Za-z0-9-]*/[A-Za-z][A-Za-z0-9-]*(;([A-Za-z0-9-]+\s*=\s*.*)*)'
+    Metadata:
+      type: object
+      description: An object's metadata. The schema of metadata is not restricted and thus can be any JSON object.
+    CollectionTypeList:
+      description: A list of collection types. The elements include just the id and the description of the type.
+      type: array
+      items: 
+        type: object
+        properties:
+          id:
+            type: string
+            description: The id of the collection type
+          name:
+            type: string
+            description: The name of the collection type
+          description:
+            type: string
+            description: The description of the collection type
+    CollectionLayout:
+      description: A collection of laid-out views, one for each defined view type
+      type: array
+      items:
+        type: object
+        title: ViewLayout
+        description: A layout for a single view
+        properties:
+          view:
+            type: string
+            description: The name of the view to which this layout belongs.
+          error:
+            type: string
+            nullable: true
+            description: The error that was generated during layout generation (if any).
+          structureTree:
+            $ref: "#/components/schemas/InnerNode"
+    Node:
+      description: A node of the view tree.
+      type: object
+      properties:
+        properties:
+          type: object
+          description: Used-defined properties generated for this node. Properties can be anything and thus don't follow 
+            a particular schema.
+        visualization:
+          type: object
+          description: A map of visualizations generated for this node. The key is the visualization type (e.g. `html`), 
+            the value is the string representation of the visualization.
+          additionalProperties:
+            type: string
+    InnerNode:
+      description: An inner node of the view tree.
+      allOf:
+      - $ref: "#/components/schemas/Node"
+      - type: object
+        properties:
+          name:
+            type: string
+            description: The name of the node.
+          children:
+            type: array
+            description: The child nodes of this node.
+            items:
+              $ref: "#/components/schemas/InnerNode"
+          elements:
+            type: array
+            description: The element (leaf-) nodes for this inner node.
+            items:
+              $ref: "#/components/schemas/ElementNode"
+    ElementNode:
+      description: An element node of the view tree. Element nodes refer to elements of the collection.
+      allOf:
+      - $ref: "#/components/schemas/Node"
+      - type: object
+        properties:
+          id:
+            type: string
+            description: The id of the element this node refers to.
