@@ -7,14 +7,12 @@ import static org.mockito.BDDMockito.given;
 import java.time.Instant;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -26,7 +24,6 @@ import com.neverpile.fusion.model.Collection;
 import com.neverpile.fusion.model.Collection.State;
 
 
-@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.NONE, classes = {
     JacksonAutoConfiguration.class, JacksonConfiguration.class, CollectionAuthorizationService.class, CollectionAuthorizationContextContributor.class
 })
