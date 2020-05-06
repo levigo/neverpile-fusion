@@ -28,7 +28,7 @@ public class CollectionEntity {
   @Id
   private Instant versionTimestamp;
 
-  private String type;
+  private String typeId;
 
   @Convert(converter = JsonNodeConverter.class)
   @Lob
@@ -59,12 +59,12 @@ public class CollectionEntity {
     this.versionTimestamp = versionTimestamp;
   }
 
-  public String getType() {
-    return type;
+  public String getTypeId() {
+    return typeId;
   }
 
-  public void setType(final String type) {
-    this.type = type;
+  public void setTypeId(final String type) {
+    this.typeId = type;
   }
 
   public ObjectNode getMetadata() {
