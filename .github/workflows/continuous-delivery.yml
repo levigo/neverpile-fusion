@@ -13,14 +13,15 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
-    ## Build-Number
-    - name: Generate build number
-      id: buildnumber
-      uses: einaregilsson/build-number@v1 
+    - name: Bump version and push tag
+      id: semanticversion
+      uses: hennejg/github-tag-action@v4.1.jh5
       with:
-        token: ${{secrets.GITHUB_TOKEN}}
+        release_branches: master
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        
     - name: Print new build number
-      run: echo Build number is $BUILD_NUMBER
+      run: "echo tag: '${{ steps.semanticversion.outputs.new_tag }}', new_version: '${{ steps.semanticversion.outputs.new_version }}', changelog: '${{ steps.semanticversion.outputs.changelog }}'" 
 
     ## Enable Caching
     - uses: actions/cache@v1
@@ -47,11 +48,8 @@ jobs:
     - name: Set version
       id: version
       run: |
-        export project_version=$(mvn help:evaluate -N -Dexpression=project.version | grep -v '\[' | tail -1 | sed -r -e 's/[-.](snapshot|local)$//i' -e 's/\s+//g')
-        export release_version=${project_version}.${{ steps.buildnumber.outputs.build_number }}
-        echo ::set-output name=release_version::${release_version}
-        echo Truncated version found to be ${project_version}, releasing as ${release_version}
-        mvn versions:set -DnewVersion=${release_version} 
+        echo Releasing as ${{ steps.semanticversion.outputs.new_version }}
+        mvn versions:set -DnewVersion=${{ steps.semanticversion.outputs.new_version }}
 
     - name: Perform build
       run: mvn -B package --file pom.xml
@@ -74,7 +72,7 @@ jobs:
       with:
         username: GitHub
         icon_emoji: octocat
-        text: Released new version `${{ steps.version.outputs.release_version }}` of *${{ github.repository }}* to ${{ secrets.REPOSITORY_URL }}
+        text: Released new version `${{ steps.semanticversion.outputs.new_version }}` of *${{ github.repository }}* to ${{ secrets.REPOSITORY_URL }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
