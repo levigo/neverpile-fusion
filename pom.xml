@@ -3,7 +3,7 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.neverpile</groupId>
+  <groupId>com.neverpile.fusion</groupId>
   <artifactId>neverpile-fusion</artifactId>
   <packaging>pom</packaging>
   <version>0.0.1-SNAPSHOT</version>
@@ -96,7 +96,7 @@
         <version>${elasticsearch.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.neverpile</groupId>
+        <groupId>com.neverpile.fusion</groupId>
         <artifactId>neverpile-eureka-core</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -195,7 +195,6 @@
 
   <modules>
     <module>neverpile-fusion-core</module>
-    <module>neverpile-fusion-application</module>
     <module>neverpile-fusion-eureka</module>
     <module>neverpile-fusion-jpa</module>
   </modules>
