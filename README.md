@@ -1,6 +1,6 @@
 [![Actions Status](https://github.com/levigo/neverpile-fusion/workflows/Continuous%20Delivery/badge.svg)](https://github.com/levigo/neverpile-fusion/actions)
 [![Docker Hub](https://img.shields.io/badge/MADE%20with-JAVA-RED.svg)](#JAVA)
-[![Generic badge](https://img.shields.io/badge/current%20version-1.0-1abc9c.svg)](https://github.com/levigo/neverpile-fusion/tree/v1.0)
+[![Generic badge](https://img.shields.io/badge/current%20version-0.1.3-1abc9c.svg)](https://github.com/levigo/neverpile-fusion/tree/v0.1.3)
 
 # neverpile-eureka
 neverpile fusion - A light-weight, integration-friendly electronic filing system.
