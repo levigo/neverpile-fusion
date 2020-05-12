@@ -6,5 +6,25 @@
     <artifactId>neverpile-fusion</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
+
   <artifactId>neverpile-fusion-eureka</artifactId>
+
+  <properties>
+    <neverpile-eureka-client.version>0.1-SNAPSHOT</neverpile-eureka-client.version>
+<!--     <neverpile-eureka-client.version>0.1.5</neverpile-eureka-client.version> -->
+  </properties>
+  
+  <dependencies>
+    <dependency>
+      <groupId>com.neverpile.fusion</groupId>
+      <artifactId>neverpile-fusion-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>com.neverpile.eureka.client</groupId>
+      <artifactId>neverpile-eureka-java-client</artifactId>
+      <version>${neverpile-eureka-client.version}</version>
+    </dependency>
+  </dependencies>
 </project>

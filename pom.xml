@@ -195,7 +195,7 @@
 
   <modules>
     <module>neverpile-fusion-core</module>
-    <module>neverpile-fusion-eureka</module>
+<!--     <module>neverpile-fusion-eureka</module> -->
     <module>neverpile-fusion-jpa</module>
   </modules>
 
