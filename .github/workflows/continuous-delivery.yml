@@ -3,9 +3,10 @@ name: Continuous Delivery
 on: 
   push:
     branches:
-    - master
+      - master
     paths-ignore:
-    - README.md
+      - '.github/**'
+      - '**/README.md'
 
 jobs:
   build:
