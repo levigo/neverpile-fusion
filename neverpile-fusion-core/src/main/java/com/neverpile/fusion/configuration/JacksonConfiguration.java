@@ -24,8 +24,9 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 @Configuration
 @ComponentScan
 public class JacksonConfiguration {
+  // Method name designed to prevent clash with bean from eureka
   @Bean
-  Jackson2ObjectMapperBuilderCustomizer jacksonCustomizer() {
+  Jackson2ObjectMapperBuilderCustomizer fusionJacksonCustomizer() {
     return new Jackson2ObjectMapperBuilderCustomizer() {
 
       @Override

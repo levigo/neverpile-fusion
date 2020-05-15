@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.neverpile.fusion.configuration.ModelMapperConfiguration.ModelMapperConfigurer;
+import com.neverpile.fusion.configuration.FusionModelMapperConfiguration.ModelMapperConfigurer;
 import com.neverpile.fusion.model.Collection;
 import com.neverpile.fusion.model.spec.Specification;
 

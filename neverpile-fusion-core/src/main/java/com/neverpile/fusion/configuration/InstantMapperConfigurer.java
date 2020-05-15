@@ -8,7 +8,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.spi.MappingContext;
 import org.springframework.stereotype.Component;
 
-import com.neverpile.fusion.configuration.ModelMapperConfiguration.ModelMapperConfigurer;
+import com.neverpile.fusion.configuration.FusionModelMapperConfiguration.ModelMapperConfigurer;
 
 @Component
 public class InstantMapperConfigurer implements ModelMapperConfigurer {
