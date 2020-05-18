@@ -1,9 +1,12 @@
-name: Continuous Integration (pull-request checks)
+name: Continuous Integration
 
 on: 
   push:
     branches-ignore:
       - master
+    paths-ignore:
+      - '.github/**'
+      - '**/README.md'
 
 jobs:
   build:
