@@ -2,7 +2,7 @@
 [![Docker Hub](https://img.shields.io/badge/MADE%20with-JAVA-RED.svg)](#JAVA)
 [![Generic badge](https://img.shields.io/badge/current%20version-0.1.4-1abc9c.svg)](https://github.com/levigo/neverpile-fusion/tree/v0.1.4)
 
-# neverpile-eureka
+# neverpile-fusion
 neverpile fusion - A light-weight, integration-friendly electronic filing system.
 
 ## Usage

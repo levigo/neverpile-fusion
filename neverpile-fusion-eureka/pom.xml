@@ -10,21 +10,53 @@
   <artifactId>neverpile-fusion-eureka</artifactId>
 
   <properties>
-    <neverpile-eureka-client.version>0.1-SNAPSHOT</neverpile-eureka-client.version>
-<!--     <neverpile-eureka-client.version>0.1.5</neverpile-eureka-client.version> -->
+    <neverpile-eureka-client.version>0.1.8</neverpile-eureka-client.version>
+    <neverpile-eureka.version>0.2.61</neverpile-eureka.version>
   </properties>
-  
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.neverpile.eureka</groupId>
+        <artifactId>neverpile-eureka-bom</artifactId>
+        <version>${neverpile-eureka.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
     <dependency>
       <groupId>com.neverpile.fusion</groupId>
       <artifactId>neverpile-fusion-core</artifactId>
       <version>${project.version}</version>
     </dependency>
-    
+
     <dependency>
       <groupId>com.neverpile.eureka.client</groupId>
       <artifactId>neverpile-eureka-java-client</artifactId>
       <version>${neverpile-eureka-client.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.neverpile.eureka</groupId>
+      <artifactId>neverpile-eureka-spring-boot-starter</artifactId>
+      <version>${neverpile-eureka.version}</version>
+      <type>pom</type>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>com.neverpile.eureka</groupId>
+          <artifactId>neverpile-eureka-search-elastic</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <!-- Spring (-Boot) -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jta-atomikos</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>
