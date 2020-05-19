@@ -99,7 +99,7 @@ public class EurekaCollectionServiceTest {
   @BeforeEach
   public void init() {
     client = EurekaClient.builder().baseURL("http://localhost:" + port + "/").build();
-    collectionService = new EurekaCollectionService(objectMapper, client);
+    collectionService = new EurekaCollectionService(objectMapper, client, clock);
   }
 
   @Test
@@ -180,11 +180,12 @@ public class EurekaCollectionServiceTest {
     tf.setVersionTimestamp(null);
     when(clock.instant()).thenReturn(v1);
     collectionService.save(tf);
+    assertThat(tf.getVersionTimestamp()).isEqualTo(v1);
 
     // now save v2
-    tf.setVersionTimestamp(v1);
     when(clock.instant()).thenReturn(v2);
     collectionService.save(tf);
+    assertThat(tf.getVersionTimestamp()).isEqualTo(v2);
 
     // save v3 but referencing the wrong version v1
     tf.setVersionTimestamp(v1);

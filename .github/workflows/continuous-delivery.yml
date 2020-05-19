@@ -7,7 +7,7 @@ on:
     paths-ignore:
       - '.github/**'
       - '**/README.md'
-
+      
 jobs:
   build:
 
@@ -23,8 +23,14 @@ jobs:
         release_branches: master
         github_token: ${{ secrets.GITHUB_TOKEN }}
         
-    - name: Print new build number
-      run: "echo tag: '${{ steps.semanticversion.outputs.new_tag }}', new_version: '${{ steps.semanticversion.outputs.new_version }}', changelog: '${{ steps.semanticversion.outputs.changelog }}'" 
+    - name: Verify and print new build number
+      run: |
+        if echo '${{ steps.semanticversion.outputs.new_tag }}' |grep -Eq '^v[0-9]+[.][0-9]+[.][0-9]+$'; then 
+          echo Tag '${{ steps.semanticversion.outputs.new_tag }}', New version '${{ steps.semanticversion.outputs.new_version }}', Changelog '${{ steps.semanticversion.outputs.changelog }}'
+        else
+          echo 'unexpected tag format - aborting'
+          exit -1
+        fi
 
     ## Enable Caching
     - uses: actions/cache@v1
@@ -78,7 +84,7 @@ jobs:
         git reset --hard HEAD      
 
         sed -ri "s,<version>.*</version>,<version>${{ steps.semanticversion.outputs.new_version }}</version>," README.md
-        sed -ri "s,version-[0-9.]+-,version-${{ steps.semanticversion.outputs.new_version }}-," README.md 
+        sed -ri "s,version-[0-9a-z.]+-,version-${{ steps.semanticversion.outputs.new_version }}-," README.md 
         sed -ri "s,neverpile-fusion/tree/[0-9a-z.]+,neverpile-fusion/tree/${{ steps.semanticversion.outputs.new_tag }}," README.md
 
         git add README.md
