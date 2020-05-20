@@ -1,7 +1,8 @@
 package com.neverpile.fusion.rest;
 
+import java.util.List;
 import java.util.UUID;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -46,9 +47,9 @@ public class CollectionTypeResource {
       "operation", "retrieve", "target", "collection-type"
   }, value = "fusion.collection-type.all")
   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-  public Stream<CollectionTypeListEntry> getAllTypes() {
+  public List<CollectionTypeListEntry> getAllTypes() {
     return collectionTypeService.getAllTypes().stream().map(
-        t -> new CollectionTypeListEntry(t.getId(), t.getName(), t.getDescription()));
+        t -> new CollectionTypeListEntry(t.getId(), t.getName(), t.getDescription())).collect(Collectors.toList());
   }
 
   public static class CollectionTypeListEntry {

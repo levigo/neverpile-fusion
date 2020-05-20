@@ -1,14 +1,13 @@
 package com.neverpile.fusion.configuration;
 
 import java.io.IOException;
+import java.util.function.Supplier;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
@@ -63,10 +62,13 @@ public class JacksonConfiguration {
     };
   }
 
+  /*
+   * Don't expose this bean as an ObjectMapper because some Spring internal injections will pick
+   * them up instead of the standard one despite @Order and @Qualifier annotations.
+   */
   @Bean
   @Qualifier("yaml")
-  @Order(Ordered.LOWEST_PRECEDENCE) // take backseat to normal JSON mapper
-  public ObjectMapper yamlMapper() {
+  public Supplier<ObjectMapper> yamlMapperSupplier() {
     Jackson2ObjectMapperBuilder b = new Jackson2ObjectMapperBuilder();
 
     fusionJacksonCustomizer().customize(b);
@@ -79,6 +81,8 @@ public class JacksonConfiguration {
 
     b.factory(yamlFactory);
 
-    return b.build();
+    ObjectMapper mapper = b.build();
+
+    return () -> mapper;
   }
 }

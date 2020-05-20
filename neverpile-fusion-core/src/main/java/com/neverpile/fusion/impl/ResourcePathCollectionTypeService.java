@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,10 +46,10 @@ public class ResourcePathCollectionTypeService implements CollectionTypeService 
   @Autowired
   public ResourcePathCollectionTypeService(
       @Value("${neverpile-fusion.resource-path-collection-type-service.base-path}") final Resource basePath,
-      final ObjectMapper jsonMapper, @Qualifier("yaml") final ObjectMapper yamlMapper) {
+      final ObjectMapper jsonMapper, @Qualifier("yaml") final Supplier<ObjectMapper> yamlMapperSupplier) {
     this.basePath = basePath;
     this.jsonMapper = jsonMapper;
-    this.yamlMapper = yamlMapper;
+    this.yamlMapper = yamlMapperSupplier.get();
   }
 
   @Override
@@ -73,21 +74,34 @@ public class ResourcePathCollectionTypeService implements CollectionTypeService 
   }
 
   private Optional<CollectionType> unmarshal(final Resource resource, final ObjectMapper mapper) throws IOException {
-    return Optional.of(mapper.readValue(resource.getInputStream(), CollectionType.class));
+    CollectionType t = mapper.readValue(resource.getInputStream(), CollectionType.class);
+    
+    // make sure the ID is correct and matches the file name
+    String idFromTileName = resource.getFilename().replaceFirst("\\.(ya?ml|json)$", "");
+    if(!idFromTileName.equals(t.getId())) {
+      if(t.getId() != null) {
+        LOGGER.warn("Collection type {} declares its id as {} but should be {}", resource.toString(), t.getId(), idFromTileName);
+      }
+      t.setId(idFromTileName);
+    }
+    
+    return Optional.of(t);
   }
 
   @Override
   public List<CollectionType> getAllTypes() {
     try {
       ArrayList<CollectionType> types = new ArrayList<>();
-      for (File f : basePath.getFile().listFiles(f -> f.isFile() && f.getName().matches(".*\\.(ya?ml|json)$"))) {
-        try {
-          unmarshal(basePath.createRelative(f.getName()),
-              f.getName().endsWith("json") ? jsonMapper : yamlMapper).ifPresent(types::add);
-        } catch (IOException e) {
-          LOGGER.info("Can't unmarshal Collection type {} - skipping it", f.getName(), e);
+      File[] list = basePath.getFile().listFiles(f -> f.isFile() && f.getName().matches(".*\\.(ya?ml|json)$"));
+      if (null != list)
+        for (File f : list) {
+          try {
+            unmarshal(basePath.createRelative(f.getName()),
+                f.getName().endsWith("json") ? jsonMapper : yamlMapper).ifPresent(types::add);
+          } catch (IOException e) {
+            LOGGER.info("Can't unmarshal Collection type {} - skipping it", f.getName(), e);
+          }
         }
-      }
       return types;
     } catch (IOException e) {
       throw new NeverpileException("Can't list collection types", e);

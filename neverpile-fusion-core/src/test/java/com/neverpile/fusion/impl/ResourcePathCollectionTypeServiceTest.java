@@ -7,6 +7,7 @@ import static org.springframework.util.StreamUtils.copyToString;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,7 +41,7 @@ public class ResourcePathCollectionTypeServiceTest {
 
   @Autowired
   @Qualifier("yaml")
-  private ObjectMapper yamlMapper;
+  private Supplier<ObjectMapper> yamlMapper;
 
   @Test
   public void testThat_collectionTypeCanBeReadFromJson() {
@@ -61,7 +62,7 @@ public class ResourcePathCollectionTypeServiceTest {
 
   @Test
   public void testThat_collectionTypeCanBeMarshalledToYaml() throws IOException {
-    assertThat(yamlMapper.writerWithDefaultPrettyPrinter().writeValueAsString(makeTestType())) //
+    assertThat(yamlMapper.get().writerWithDefaultPrettyPrinter().writeValueAsString(makeTestType())) //
         .isEqualToNormalizingWhitespace(
             copyToString(getClass().getResourceAsStream("/collectionTypes/aYamlCollectionType.yaml"), UTF_8));
   }
