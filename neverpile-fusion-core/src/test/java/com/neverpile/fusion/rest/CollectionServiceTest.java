@@ -1,6 +1,7 @@
 package com.neverpile.fusion.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.ArgumentMatchers.any;
 
@@ -20,13 +21,16 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neverpile.fusion.api.CollectionIdStrategy;
 import com.neverpile.fusion.api.CollectionService;
+import com.neverpile.fusion.api.CollectionTypeService;
 import com.neverpile.fusion.model.Collection;
+import com.neverpile.fusion.model.CollectionType;
 
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -44,6 +48,9 @@ public class CollectionServiceTest extends AbstractRestAssuredTest {
 
   @MockBean
   CollectionService mockCollectionService;
+  
+  @MockBean
+  CollectionTypeService mockCollectionTypeService;
 
   @MockBean
   CollectionIdStrategy idGenerationStrategy;
@@ -57,6 +64,7 @@ public class CollectionServiceTest extends AbstractRestAssuredTest {
     BDDMockito.when(idGenerationStrategy.creatcollectionId()).thenAnswer(
         (i) -> "TheAnswerIs" + docIdGenerator.getAndIncrement());
     BDDMockito.when(idGenerationStrategy.validateCollectionId(any())).thenReturn(true);
+    BDDMockito.when(mockCollectionTypeService.get(any())).thenReturn(Optional.of(new CollectionType()));
   }
 
   @Test
@@ -138,11 +146,63 @@ public class CollectionServiceTest extends AbstractRestAssuredTest {
       .then()
         .log().all()
         .statusCode(201)
+        .header("Location", Matchers.equalTo("iAmAProvidedId"))
         .contentType(ContentType.JSON)
         .extract().as(Collection.class);
     
     assertThat(resCollection.getId()).isEqualTo("iAmAProvidedId");
     assertThat(resCollection.getVersionTimestamp()).isBetween(then, Instant.now());
+    // @formatter:on
+  }
+  
+
+  @Test
+  public void testThat_collectionCreationValidatesCollectionType() throws Exception {
+    // @formatter:off
+    ArgumentCaptor<Collection> storedCollectionC = ArgumentCaptor.forClass(Collection.class);
+    
+    BDDMockito
+    .given(mockCollectionService.save(storedCollectionC.capture()))
+    .willAnswer(i -> { 
+      Collection collection = i.getArgument(0);
+      collection.setVersionTimestamp(Instant.now());
+      collection.setDateCreated(Instant.now());
+      collection.setDateModified(Instant.now());
+      return collection; 
+    });
+
+    // store collection with null type id
+    Collection c = createTestCollection();
+    c.setTypeId(null);
+    RestAssured.given()
+        .accept(ContentType.JSON)
+        .body(c).contentType(ContentType.JSON)
+        .auth().preemptive().basic("user", "password")
+      .when()
+        .log().all()
+        .post("/api/v1/collections")
+      .then()
+        .log().all()
+        .statusCode(HttpStatus.NOT_ACCEPTABLE.value())
+        .body("message", containsString("Type id is missing"));
+    
+    // find no type ids
+    BDDMockito.when(mockCollectionTypeService.get(any())).thenReturn(Optional.empty());
+    
+    // store collection with nonexisting type id
+    c.setTypeId("iDontExist");
+    RestAssured.given()
+        .accept(ContentType.JSON)
+        .body(c).contentType(ContentType.JSON)
+        .auth().preemptive().basic("user", "password")
+      .when()
+        .log().all()
+        .post("/api/v1/collections")
+      .then()
+        .log().all()
+        .statusCode(HttpStatus.NOT_ACCEPTABLE.value())
+        .body("message", containsString("No such collection type"));
+    
     // @formatter:on
   }
   
@@ -189,6 +249,7 @@ public class CollectionServiceTest extends AbstractRestAssuredTest {
   private Collection createTestCollection() throws JsonProcessingException {
     Collection collection = new Collection();
 
+    collection.setTypeId("foo");
     collection.setMetadata(objectMapper.createObjectNode().put("foo", "bar"));
 
     return collection;

@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.neverpile.common.authorization.api.CoreActions;
 import com.neverpile.fusion.api.CollectionIdStrategy;
 import com.neverpile.fusion.api.CollectionService;
+import com.neverpile.fusion.api.CollectionTypeService;
 import com.neverpile.fusion.api.exception.PermissionDeniedException;
 import com.neverpile.fusion.authorization.CollectionAuthorizationService;
 import com.neverpile.fusion.model.Collection;
@@ -47,6 +48,9 @@ public class CollectionResource {
 
   @Autowired
   private CollectionService collectionService;
+  
+  @Autowired
+  private CollectionTypeService collectionTypeService;
 
   @Autowired
   private CollectionIdStrategy idGenerationStrategy;
@@ -125,6 +129,12 @@ public class CollectionResource {
   }
 
   private void beforeSave(final Collection collection) {
+    // validate collection
+    if(collection.getTypeId() == null)
+      throw new NotAcceptableException("Type id is missing");
+    if(collectionTypeService.get(collection.getTypeId()).isEmpty())
+      throw new NotAcceptableException("No such collection type");
+      
     Instant now = Instant.now();
 
     // set creation/modification date
