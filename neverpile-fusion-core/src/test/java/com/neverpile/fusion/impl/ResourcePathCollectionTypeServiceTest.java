@@ -1,4 +1,4 @@
-package com.neverpile.fusion.model;
+package com.neverpile.fusion.impl;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -19,13 +19,17 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neverpile.fusion.configuration.JacksonConfiguration;
-import com.neverpile.fusion.impl.ResourcePathCollectionTypeService;
+import com.neverpile.fusion.model.CollectionType;
+import com.neverpile.fusion.model.View;
 import com.neverpile.fusion.model.rules.javascript.JavascriptRule;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.NONE, classes = {
     JacksonAutoConfiguration.class, JacksonConfiguration.class, ResourcePathCollectionTypeService.class
-}, properties = "neverpile.fusion.resource-path-collection-type-service.base-path=classpath:/collectionTypes/")
+}, properties = {
+    "neverpile.fusion.resource-path-collection-type-service.enabled=true",
+    "neverpile.fusion.resource-path-collection-type-service.base-path=classpath:/collectionTypes/"
+})
 public class ResourcePathCollectionTypeServiceTest {
 
   @Autowired
@@ -122,7 +126,7 @@ public class ResourcePathCollectionTypeServiceTest {
 
   private void verifyTestType(final Optional<CollectionType> ctOptional) {
     assertThat(ctOptional).isNotEmpty();
-    
+
     CollectionType ct = ctOptional.get();
     assertThat(ct.getPermittedTags()).contains("foo", "bar", "baz");
     assertThat(ct.getViews()).hasSize(2);
@@ -130,10 +134,12 @@ public class ResourcePathCollectionTypeServiceTest {
     assertThat(ct.getViews().get(0).getElementRules()).hasSize(4);
     assertThat(ct.getViews().get(0).getElementRules().get(2).getName()).contains("chronologically");
     assertThat(ct.getViews().get(0).getElementRules().get(2)).isInstanceOf(JavascriptRule.class);
-    assertThat(((JavascriptRule)ct.getViews().get(0).getElementRules().get(2)).getScriptCode()).contains("createNode('Chronological'");
+    assertThat(((JavascriptRule) ct.getViews().get(0).getElementRules().get(2)).getScriptCode()).contains(
+        "createNode('Chronological'");
     assertThat(ct.getViews().get(0).getTreeRules()).hasSize(1);
     assertThat(ct.getViews().get(0).getTreeRules().get(0).getName()).contains("chronologically");
     assertThat(ct.getViews().get(0).getTreeRules().get(0)).isInstanceOf(JavascriptRule.class);
-    assertThat(((JavascriptRule)ct.getViews().get(0).getTreeRules().get(0)).getScriptCode()).contains("withNode(function(n)");
+    assertThat(((JavascriptRule) ct.getViews().get(0).getTreeRules().get(0)).getScriptCode()).contains(
+        "withNode(function(n)");
   }
 }
