@@ -20,8 +20,21 @@ import com.neverpile.fusion.api.CollectionTypeService;
 import com.neverpile.fusion.api.exception.NeverpileException;
 import com.neverpile.fusion.model.CollectionType;
 
+/**
+ * An implementation of {@link CollectionTypeService} which pulls collection definitions from
+ * <code>.json</code> or <code>.yaml</code> files residing in some spring {@link Resource} location.
+ * The files must be named after the collection type id with an added suffix of <code>.json</code>
+ * for JSON-encoded definitions or <code>.yaml</code> or <code>.yml</code> for YAML encoded ones.
+ * <p>
+ * For Spring-DI configured components, the resource path is injected from the property
+ * <code>neverpile-fusion.resource-path-collection-type-service.base-path</code> and the component
+ * must be enabled by setting the property
+ * <code>neverpile-fusion.resource-path-collection-type-service.enabled=true</code>. The constructor
+ * injection expects to beans of typ {@link ObjectMapper}, the default one for JSON, and one, with
+ * the qualifier <code>yaml</code>, configured for YAML.
+ */
 @Component
-@ConditionalOnProperty(name= "neverpile-fusion.resource-path-collection-type-service.enabled", matchIfMissing = false, havingValue = "true")
+@ConditionalOnProperty(name = "neverpile-fusion.resource-path-collection-type-service.enabled", matchIfMissing = false, havingValue = "true")
 public class ResourcePathCollectionTypeService implements CollectionTypeService {
   private static final Logger LOGGER = LoggerFactory.getLogger(ResourcePathCollectionTypeService.class);
 

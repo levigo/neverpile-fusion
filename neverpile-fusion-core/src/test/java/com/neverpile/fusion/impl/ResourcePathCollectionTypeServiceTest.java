@@ -27,8 +27,8 @@ import com.neverpile.fusion.model.rules.javascript.JavascriptRule;
 @SpringBootTest(webEnvironment = WebEnvironment.NONE, classes = {
     JacksonAutoConfiguration.class, JacksonConfiguration.class, ResourcePathCollectionTypeService.class
 }, properties = {
-    "neverpile.fusion.resource-path-collection-type-service.enabled=true",
-    "neverpile.fusion.resource-path-collection-type-service.base-path=classpath:/collectionTypes/"
+    "neverpile-fusion.resource-path-collection-type-service.enabled=true",
+    "neverpile-fusion.resource-path-collection-type-service.base-path=classpath:/collectionTypes/"
 })
 public class ResourcePathCollectionTypeServiceTest {
 
