@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -68,6 +69,8 @@ public class CollectionServiceTest extends AbstractRestAssuredTest {
         .willAnswer(i -> { 
           Collection collection = i.getArgument(0);
           collection.setVersionTimestamp(Instant.now());
+          collection.setDateCreated(Instant.now());
+          collection.setDateModified(Instant.now());
           return collection; 
         });
     
@@ -82,7 +85,9 @@ public class CollectionServiceTest extends AbstractRestAssuredTest {
       .log().all()
       .post("/api/v1/collections")
     .then()
+      .log().all()
       .statusCode(201)
+      .header("Location", Matchers.equalTo("TheAnswerIs42"))
       .contentType(ContentType.JSON)
       .extract().as(Collection.class);
 
@@ -102,6 +107,42 @@ public class CollectionServiceTest extends AbstractRestAssuredTest {
       .extract().as(Collection.class);
 
     assertThat(res2Collection.getId()).isEqualTo("TheAnswerIs43");
+    // @formatter:on
+  }
+  
+  @Test
+  public void testThat_collectionCanBeCreatedWithProvidedId() throws Exception {
+    // @formatter:off
+    ArgumentCaptor<Collection> storedCollectionC = ArgumentCaptor.forClass(Collection.class);
+    
+    BDDMockito
+    .given(mockCollectionService.save(storedCollectionC.capture()))
+    .willAnswer(i -> { 
+      Collection collection = i.getArgument(0);
+      collection.setVersionTimestamp(Instant.now());
+      collection.setDateCreated(Instant.now());
+      collection.setDateModified(Instant.now());
+      return collection; 
+    });
+    
+    Instant then = Instant.now();
+    
+    // store collection
+    Collection resCollection = RestAssured.given()
+        .accept(ContentType.JSON)
+        .body(createTestCollection()).contentType(ContentType.JSON)
+        .auth().preemptive().basic("user", "password")
+      .when()
+        .log().all()
+        .put("/api/v1/collections/{id}", "iAmAProvidedId")
+      .then()
+        .log().all()
+        .statusCode(201)
+        .contentType(ContentType.JSON)
+        .extract().as(Collection.class);
+    
+    assertThat(resCollection.getId()).isEqualTo("iAmAProvidedId");
+    assertThat(resCollection.getVersionTimestamp()).isBetween(then, Instant.now());
     // @formatter:on
   }
   

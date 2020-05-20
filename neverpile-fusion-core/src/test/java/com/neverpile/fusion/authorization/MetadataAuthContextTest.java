@@ -42,7 +42,7 @@ public class MetadataAuthContextTest {
     ArgumentCaptor<AuthorizationContext> authContextC = ArgumentCaptor.forClass(AuthorizationContext.class);
     given(authorizationService.isAccessAllowed(any(), any(), authContextC.capture())).willReturn(true);
 
-    collectionAuthorizationService.authorizCollectionAction(createTestCollection(), CoreActions.GET);
+    collectionAuthorizationService.authorizeCollectionAction(createTestCollection(), CoreActions.GET);
     
     AuthorizationContext ac = authContextC.getValue();
     assertThat(ac.resolveValue("collection.type")).isEqualTo("aCollectionType");
