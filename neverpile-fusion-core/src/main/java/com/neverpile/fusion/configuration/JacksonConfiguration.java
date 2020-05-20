@@ -2,10 +2,13 @@ package com.neverpile.fusion.configuration;
 
 import java.io.IOException;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
@@ -15,10 +18,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.databind.util.StdDateFormat;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactoryBuilder;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @Configuration
@@ -54,5 +61,24 @@ public class JacksonConfiguration {
         });
       }
     };
+  }
+
+  @Bean
+  @Qualifier("yaml")
+  @Order(Ordered.LOWEST_PRECEDENCE) // take backseat to normal JSON mapper
+  public ObjectMapper yamlMapper() {
+    Jackson2ObjectMapperBuilder b = new Jackson2ObjectMapperBuilder();
+
+    fusionJacksonCustomizer().customize(b);
+
+    YAMLFactory yamlFactory = new YAMLFactoryBuilder(new YAMLFactory()) //
+        .configure(YAMLGenerator.Feature.MINIMIZE_QUOTES, true) //
+        .configure(YAMLGenerator.Feature.INDENT_ARRAYS, false) //
+        .configure(YAMLGenerator.Feature.USE_NATIVE_TYPE_ID, false) //
+        .build();
+
+    b.factory(yamlFactory);
+
+    return b.build();
   }
 }
