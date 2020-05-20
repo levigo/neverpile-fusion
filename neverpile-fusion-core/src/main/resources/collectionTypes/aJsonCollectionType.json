@@ -1,0 +1,40 @@
+{
+  "id" : "aCollectionType",
+  "name" : "A very basic collection type",
+  "description" : "A collection type used to test fusion",
+  "permittedTags" : [ "foo", "bar", "baz" ],
+  "allowAllTags" : false,
+  "views" : [ {
+    "name" : "Default",
+    "elementRules" : [ {
+      "type" : "javascript",
+      "name" : "Put elements with foo metadata under a foo node",
+      "scriptCode" : "if(element.metadata.foo) {  createElement(element, 'All foos')    .withProperty('foo-type', element.metadata.foo)    .withVisualization('html', '<b>FOO</b>');  createNode('All bars');}"
+    }, {
+      "type" : "javascript",
+      "name" : "Put elements tagged yada under a yada node",
+      "scriptCode" : "if(element.tags.includes('yada'))  createElement(element, 'All yadas')    .withVisualization('html', '<b>YADA ' + element.metadata.foo + '</b>');"
+    }, {
+      "type" : "javascript",
+      "name" : "All elements chronologically",
+      "scriptCode" : "createNode('Chronological', element.dateCreated.toISOString())  .withProperty('sort-by-date', element.dateCreated.getTime())  .withElement(element);"
+    }, {
+      "type" : "javascript",
+      "name" : "Put elements under nodes by their first tag",
+      "scriptCode" : "element.tags.forEach(  function(t){    createElement(element, 'By tag', 'Tag: ' + t)  })"
+    } ],
+    "treeRules" : [ {
+      "type" : "javascript",
+      "name" : "Sort chronological branch chronologically",
+      "scriptCode" : "withNode(function(n) {  n.children.sort(function(a,b){    return a.properties['sort-by-date'] - b.properties['sort-by-date'];  })}, 'Chronological')"
+    } ]
+  }, {
+    "name" : "Error",
+    "elementRules" : [ {
+      "type" : "javascript",
+      "name" : "This rule always errors",
+      "scriptCode" : "barf();"
+    } ],
+    "treeRules" : [ ]
+  } ]
+}
