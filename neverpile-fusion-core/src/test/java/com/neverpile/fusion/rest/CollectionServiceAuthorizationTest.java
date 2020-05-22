@@ -26,8 +26,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neverpile.common.authorization.api.CoreActions;
 import com.neverpile.fusion.api.CollectionIdStrategy;
 import com.neverpile.fusion.api.CollectionService;
+import com.neverpile.fusion.api.CollectionTypeService;
 import com.neverpile.fusion.authorization.CollectionAuthorizationService;
 import com.neverpile.fusion.model.Collection;
+import com.neverpile.fusion.model.CollectionType;
 
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -47,6 +49,9 @@ public class CollectionServiceAuthorizationTest extends AbstractRestAssuredTest 
   CollectionService mockCollectionService;
 
   @MockBean
+  CollectionTypeService mockCollectionTypeService;
+
+  @MockBean
   CollectionIdStrategy idGenerationStrategy;
 
   @MockBean
@@ -60,6 +65,7 @@ public class CollectionServiceAuthorizationTest extends AbstractRestAssuredTest 
     AtomicInteger docIdGenerator = new AtomicInteger(42);
     when(idGenerationStrategy.creatcollectionId()).thenAnswer((i) -> "TheAnswerIs" + docIdGenerator.getAndIncrement());
     when(idGenerationStrategy.validateCollectionId(any())).thenReturn(true);
+    when(mockCollectionTypeService.get(any())).thenReturn(Optional.of(new CollectionType()));
   }
 
   @Test
@@ -136,7 +142,9 @@ public class CollectionServiceAuthorizationTest extends AbstractRestAssuredTest 
   }
 
   private Collection createTestCollection() throws JsonProcessingException {
-    return new Collection();
+    Collection collection = new Collection();
+    collection.setTypeId("foo");
+    return collection;
   }
 
   @Test
