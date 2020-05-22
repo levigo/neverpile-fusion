@@ -79,8 +79,8 @@ public class CollectionResource {
       "operation", "retrieve", "target", "collection"
   }, value = "fusion.collection.get-version")
   public Collection getVersion(@PathVariable("collectionID") final String collectionId,
-      @PathVariable("versionTimestamp") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) final Date versionTimestamp) {
-    Collection collection = collectionService.getVersion(collectionId, versionTimestamp.toInstant()).orElseThrow(
+      @PathVariable("versionTimestamp") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) final Instant versionTimestamp) {
+    Collection collection = collectionService.getVersion(collectionId, versionTimestamp).orElseThrow(
         () -> new NotFoundException("Collection not found"));
 
     if (!collectionAuthorizationService.authorizeCollectionAction(collection, CoreActions.GET))

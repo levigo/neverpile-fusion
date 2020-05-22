@@ -285,4 +285,38 @@ public class CollectionServiceTest extends AbstractRestAssuredTest {
     // verify returned document
     assertThat(returnedDoss.getId()).isEqualTo(F);
   }
+  
+  @Test
+  public void testThat_collectionVersionCanBeRetrievedAsJSON() throws Exception {
+    // @formatter:off
+    Instant then = Instant.now();
+    
+    // retrieve it
+    BDDMockito
+      .given(mockCollectionService.getVersion(F, then))
+        .willAnswer((a) -> { 
+          Collection f = createTestCollection();
+          f.setId(F);
+          return Optional.of(f);
+        });
+    
+    Collection returnedDoss = RestAssured
+      .given()
+        .accept(ContentType.JSON)
+        .body(createTestCollection()).contentType(ContentType.JSON)
+        .auth().preemptive().basic("user", "password")
+      .when()
+        .log().all()
+        .get("/api/v1/collections/{id}/{then}", F, then.toString())
+      .then()
+        .log().all()
+        .statusCode(200)
+        .contentType(ContentType.JSON)
+        .body("id", equalTo(F))
+        .extract().as(Collection.class);
+    // @formatter:on
+    
+    // verify returned document
+    assertThat(returnedDoss.getId()).isEqualTo(F);
+  }
 }
