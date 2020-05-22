@@ -218,6 +218,42 @@ public class EurekaCollectionServiceTest {
     assertThrows(VersionMismatchException.class, () -> collectionService.save(tf));
   }
 
+  @Test
+  public void testThat_collectionCanBeRetrieved() {
+    Collection tf = createTestCollection();
+    tf.setId(UUID.randomUUID().toString());
+    
+    // Save two versions, as in tests above...
+    // V1
+    Instant v1 = Instant.ofEpochMilli(1);
+    when(clock.instant()).thenReturn(v1);
+    tf.setVersionTimestamp(null);
+    assertThat(collectionService.save(tf).getVersionTimestamp()).isEqualTo(v1);
+    
+    // V2
+    Instant v2 = Instant.ofEpochMilli(2);
+    when(clock.instant()).thenReturn(v2);
+    tf.setVersionTimestamp(v1);
+    assertThat(collectionService.save(tf).getVersionTimestamp()).isEqualTo(v2);
+    
+    // ...but have a closed look at the results
+    // retrieve current version
+    Optional<Collection> currentOpt = collectionService.getCurrent(tf.getId());
+    assertThat(currentOpt).isNotEmpty();
+    Collection current = currentOpt.get();
+    assertThat(current.getId()).isEqualTo(tf.getId());
+    assertThat(current.getVersionTimestamp()).isEqualTo(v2);
+    assertThat(current.getCreatedBy()).isEqualTo("user");
+    
+    // retrieve old version
+    Optional<Collection> oldOpt = collectionService.getVersion(tf.getId(), v1);
+    assertThat(oldOpt).isNotEmpty();
+    Collection old = oldOpt.get();
+    assertThat(old.getId()).isEqualTo(tf.getId());
+    assertThat(old.getVersionTimestamp()).isEqualTo(v1);
+    assertThat(old.getCreatedBy()).isEqualTo("user");
+  }
+  
   private Collection createTestCollection() {
     Collection f = new Collection();
     f.setTypeId("aCollectionType");
