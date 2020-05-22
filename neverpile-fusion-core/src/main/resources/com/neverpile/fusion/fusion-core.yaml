@@ -352,11 +352,19 @@ components:
                   type: string
                   pattern: '[\w .-_/]+'
               specification:
-                allOf:
+                discriminator:
+                  propertyName: type
+                oneOf:
                   - type: object
                     title: Artifact
                     description: A general artifact which could be, for example, a document, an image or a media stream.
+                    required:
+                      - type
+                      - contentURI
+                      - mediaType
                     properties:
+                      type:
+                        type: string
                       contentURI: 
                         type: string
                         description: The URI by which the artifact can be addressed. This may or may not be also a URL.
@@ -367,7 +375,12 @@ components:
                   - type: object
                     title: CollectionReference
                     description: A reference to another collection within the same system.
+                    required:
+                      - type
+                      - collectionId
                     properties:
+                      type:
+                        type: string
                       collectionId:
                         type: string
                         description: The id of the referenced collection.
@@ -375,14 +388,21 @@ components:
                     title: CompositePaged
                     description: A collection element consisting of paged media (e.g. PDFs, scanned images, etc.) which can
                       be arbitrarily composed from any number of sources to form a virtual document.
+                    required:
+                      - type
                     properties:
+                      type:
+                        type: string
                       annotationData:
                         $ref: "#/components/schemas/AnnotationData"
                       pageSequences:
                         type: array
                         items:
                           title: PageSequence
-                          type: object 
+                          type: object
+                          required:
+                            - mediaType
+                            - contentURI
                           properties:
                             mediaType:
                               $ref: '#/components/schemas/MediaType'
@@ -391,7 +411,7 @@ components:
                               description: The URI by which the part document can be addressed. This may or may not be 
                                 also a URL. If it is not a URL, further, integration-specific resolution must be performed
                                 to turn a URI into a URL suitable for loading the actual document data.
-                            pageIdices:
+                            pageIndices:
                               type: array
                               nullable: true
                               description: The pages selected from the source document for inclusion into the composite 
