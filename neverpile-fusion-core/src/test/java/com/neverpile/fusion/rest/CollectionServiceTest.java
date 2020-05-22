@@ -146,7 +146,6 @@ public class CollectionServiceTest extends AbstractRestAssuredTest {
       .then()
         .log().all()
         .statusCode(201)
-        .header("Location", Matchers.equalTo("iAmAProvidedId"))
         .contentType(ContentType.JSON)
         .extract().as(Collection.class);
     
