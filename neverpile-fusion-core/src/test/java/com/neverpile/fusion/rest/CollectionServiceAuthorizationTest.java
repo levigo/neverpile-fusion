@@ -26,8 +26,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neverpile.common.authorization.api.CoreActions;
 import com.neverpile.fusion.api.CollectionIdStrategy;
 import com.neverpile.fusion.api.CollectionService;
+import com.neverpile.fusion.api.CollectionTypeService;
 import com.neverpile.fusion.authorization.CollectionAuthorizationService;
 import com.neverpile.fusion.model.Collection;
+import com.neverpile.fusion.model.CollectionType;
 
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -47,6 +49,9 @@ public class CollectionServiceAuthorizationTest extends AbstractRestAssuredTest 
   CollectionService mockCollectionService;
 
   @MockBean
+  CollectionTypeService mockCollectionTypeService;
+
+  @MockBean
   CollectionIdStrategy idGenerationStrategy;
 
   @MockBean
@@ -60,6 +65,7 @@ public class CollectionServiceAuthorizationTest extends AbstractRestAssuredTest 
     AtomicInteger docIdGenerator = new AtomicInteger(42);
     when(idGenerationStrategy.creatcollectionId()).thenAnswer((i) -> "TheAnswerIs" + docIdGenerator.getAndIncrement());
     when(idGenerationStrategy.validateCollectionId(any())).thenReturn(true);
+    when(mockCollectionTypeService.get(any())).thenReturn(Optional.of(new CollectionType()));
   }
 
   @Test
@@ -68,7 +74,7 @@ public class CollectionServiceAuthorizationTest extends AbstractRestAssuredTest 
     given(mockCollectionService.save(any())).willAnswer(i -> i.getArgument(0));
     
     // allow
-    given(collectionAuthorizationService.authorizCollectionAction(any(), any())).willReturn(true);
+    given(collectionAuthorizationService.authorizeCollectionAction(any(), any())).willReturn(true);
     
     // store collection
     RestAssured.given()
@@ -80,10 +86,10 @@ public class CollectionServiceAuthorizationTest extends AbstractRestAssuredTest 
     .then()
       .statusCode(201);
     
-    verify(collectionAuthorizationService).authorizCollectionAction(isNotNull(), eq(CoreActions.CREATE));
+    verify(collectionAuthorizationService).authorizeCollectionAction(isNotNull(), eq(CoreActions.CREATE));
     
     // now deny
-    given(collectionAuthorizationService.authorizCollectionAction(any(), any())).willReturn(false);
+    given(collectionAuthorizationService.authorizeCollectionAction(any(), any())).willReturn(false);
     
     // store collection
     RestAssured.given()
@@ -106,7 +112,7 @@ public class CollectionServiceAuthorizationTest extends AbstractRestAssuredTest 
     given(mockCollectionService.save(any())).willAnswer(i -> i.getArgument(0));
     
     // allow
-    given(collectionAuthorizationService.authorizCollectionAction(any(), any())).willReturn(true);
+    given(collectionAuthorizationService.authorizeCollectionAction(any(), any())).willReturn(true);
     
     // store collection
     RestAssured.given()
@@ -118,10 +124,10 @@ public class CollectionServiceAuthorizationTest extends AbstractRestAssuredTest 
       .then()
         .statusCode(201);
 
-    verify(collectionAuthorizationService).authorizCollectionAction(isNotNull(), eq(CoreActions.UPDATE));
+    verify(collectionAuthorizationService).authorizeCollectionAction(isNotNull(), eq(CoreActions.UPDATE));
     
     // now deny
-    given(collectionAuthorizationService.authorizCollectionAction(any(), any())).willReturn(false);
+    given(collectionAuthorizationService.authorizeCollectionAction(any(), any())).willReturn(false);
     
     // store collection
     RestAssured.given()
@@ -136,7 +142,9 @@ public class CollectionServiceAuthorizationTest extends AbstractRestAssuredTest 
   }
 
   private Collection createTestCollection() throws JsonProcessingException {
-    return new Collection();
+    Collection collection = new Collection();
+    collection.setTypeId("foo");
+    return collection;
   }
 
   @Test
@@ -146,7 +154,7 @@ public class CollectionServiceAuthorizationTest extends AbstractRestAssuredTest 
     given(mockCollectionService.getCurrent(F)).willAnswer(a -> Optional.of(createTestCollection()));
 
     // allow
-    given(collectionAuthorizationService.authorizCollectionAction(any(), any())).willReturn(true);
+    given(collectionAuthorizationService.authorizeCollectionAction(any(), any())).willReturn(true);
     
     RestAssured
       .given()
@@ -158,10 +166,10 @@ public class CollectionServiceAuthorizationTest extends AbstractRestAssuredTest 
       .then()
         .statusCode(200);
 
-    verify(collectionAuthorizationService).authorizCollectionAction(isNotNull(), eq(CoreActions.GET));
+    verify(collectionAuthorizationService).authorizeCollectionAction(isNotNull(), eq(CoreActions.GET));
     
     // now deny
-    given(collectionAuthorizationService.authorizCollectionAction(any(), any())).willReturn(false);
+    given(collectionAuthorizationService.authorizeCollectionAction(any(), any())).willReturn(false);
     
     RestAssured
       .given()

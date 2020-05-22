@@ -46,7 +46,8 @@ public class EurekaCollectionService implements CollectionService {
   private final Clock clock;
 
   @Autowired
-  public EurekaCollectionService(final ObjectMapper objectMapper, final NeverpileEurekaClient client, final Clock clock) {
+  public EurekaCollectionService(final ObjectMapper objectMapper, final NeverpileEurekaClient client,
+      final Clock clock) {
     this.objectMapper = objectMapper;
     this.client = client;
     this.clock = clock;
@@ -57,13 +58,20 @@ public class EurekaCollectionService implements CollectionService {
     try {
       ContentElementResponse contentElement = client.documentService().queryContent(id).withRole(
           COLLECTION_ROLE_NAME).getOnly();
-      return Optional.of(objectMapper.readValue(contentElement.getContent(), Collection.class));
+
+      Collection collection = objectMapper.readValue(contentElement.getContent(), Collection.class);
+
+      // the version timestamp isn't persisted but derived from the eureka version
+      collection.setVersionTimestamp(contentElement.getVersionTimestamp());
+
+      return Optional.of(collection);
     } catch (JsonMappingException | JsonParseException e) {
       LOGGER.error("Failed to unmarshal collection", e);
       throw new NeverpileException("Failed to unmarshal collection", e);
     } catch (ClientException e) {
-      // Eureka signals 400 BAD REQUEST for malformed document or element IDs - we treat them as simply nonexistent
-      if(e.getCode() == 400)
+      // Eureka signals 400 BAD REQUEST for malformed document or element IDs - we treat them as
+      // simply nonexistent
+      if (e.getCode() == 400)
         return Optional.empty();
       throw e;
     } catch (NotFoundException e) {
@@ -77,8 +85,14 @@ public class EurekaCollectionService implements CollectionService {
   @Override
   public Optional<Collection> getVersion(final String id, final Instant versionTimestamp) {
     try {
-      return Optional.of(objectMapper.readValue(client.documentService().queryContent(id, versionTimestamp).withRole(
-          COLLECTION_ROLE_NAME).getOnly().getContent(), Collection.class));
+      ContentElementResponse contentElement = client.documentService().queryContent(id, versionTimestamp).withRole(
+          COLLECTION_ROLE_NAME).getOnly();
+      Collection collection = objectMapper.readValue(contentElement.getContent(), Collection.class);
+      
+      // the version timestamp isn't persisted but derived from the eureka version
+      collection.setVersionTimestamp(contentElement.getVersionTimestamp());
+
+      return Optional.of(collection);
     } catch (JsonMappingException | JsonParseException e) {
       LOGGER.error("Failed to unmarshal collection", e);
       throw new NeverpileException("Failed to unmarshal collection", e);
@@ -101,7 +115,7 @@ public class EurekaCollectionService implements CollectionService {
 
     try {
       Instant vts = collection.getVersionTimestamp();
-      
+
       // don't persist the version timestamp - it is identical to the document version timestamp
       // which we do not know yet.
       collection.setVersionTimestamp(null);
@@ -109,7 +123,7 @@ public class EurekaCollectionService implements CollectionService {
 
       // restore timestamp
       collection.setVersionTimestamp(vts);
-      
+
       // does the document already exist?
       Optional<Document> currentVersion = client.documentService().getDocument(collection.getId());
       if (currentVersion.isPresent()) {
@@ -117,9 +131,10 @@ public class EurekaCollectionService implements CollectionService {
 
         collection.setVersionTimestamp(addedOrUpdated.getVersionTimestamp());
       } else {
-        if(null != vts)
-          throw new VersionMismatchException("Saving a new collection requires a null version timestamp", "null", vts.toString());
-        
+        if (null != vts)
+          throw new VersionMismatchException("Saving a new collection requires a null version timestamp", "null",
+              vts.toString());
+
         Document doc = createNewDocumentWithCollection(collection, serialized);
 
         collection.setVersionTimestamp(doc.getVersionTimestamp());
@@ -164,10 +179,10 @@ public class EurekaCollectionService implements CollectionService {
       if (!currentTimestamp.equals(collection.getVersionTimestamp()))
         throw new VersionMismatchException("Failed to update collection: version is not the current one",
             currentTimestamp.toString(), collection.getVersionTimestamp().toString());
-      
+
       // detect backwards-running clock
       Instant now = clock.instant();
-      if(now.isBefore(currentTimestamp))
+      if (now.isBefore(currentTimestamp))
         throw new VersionMismatchException("Detected clock running backwards during save", currentTimestamp.toString(),
             now.toString());
     }

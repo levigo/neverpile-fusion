@@ -34,7 +34,7 @@ public class CollectionAuthorizationService {
    * @param action the action to be authorized
    * @return <code>true</code> if the action shall be permitted, <code>false</code> otherwise.
    */
-  public boolean authorizCollectionAction(final Collection collection, final Action action) {
+  public boolean authorizeCollectionAction(final Collection collection, final Action action) {
     return authorizationService.isAccessAllowed("collection", Collections.singleton(action),
         constructAuthorizationContext(collection));
   }
