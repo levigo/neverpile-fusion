@@ -11,7 +11,7 @@
 
   <properties>
     <neverpile-eureka-client.version>0.1.8</neverpile-eureka-client.version>
-    <neverpile-eureka.version>0.2.61</neverpile-eureka.version>
+    <neverpile-eureka.version>0.2.62</neverpile-eureka.version>
   </properties>
 
   <dependencyManagement>

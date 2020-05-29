@@ -12,6 +12,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -152,6 +153,28 @@ public class EurekaCollectionServiceTest {
     // both versions must exist
     assertThat(collectionService.getVersion(tf.getId(), v1)).isNotEmpty();
     assertThat(collectionService.getVersion(tf.getId(), v2)).isNotEmpty();
+  }
+  
+  @Test
+  public void testThat_versionListCanBeRetrieved() {
+    Collection tf = createTestCollection();
+    tf.setId(UUID.randomUUID().toString());
+    
+    // V1
+    Instant v1 = Instant.ofEpochMilli(1);
+    when(clock.instant()).thenReturn(v1);
+    tf.setVersionTimestamp(null);
+    assertThat(collectionService.save(tf).getVersionTimestamp()).isEqualTo(v1);
+    
+    // V2
+    Instant v2 = Instant.ofEpochMilli(2);
+    when(clock.instant()).thenReturn(v2);
+    tf.setVersionTimestamp(v1);
+    assertThat(collectionService.save(tf).getVersionTimestamp()).isEqualTo(v2);
+    
+    // both versions must exist
+    List<Instant> versions = collectionService.getVersions(tf.getId());
+    assertThat(versions).containsExactly(v1, v2);
   }
 
   @Test
