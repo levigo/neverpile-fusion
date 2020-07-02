@@ -21,13 +21,24 @@ function _cd(o){
 function _wrapNode(n) {
 	var wrapper = {
 		// wrap the withElement method to replace the JS element with the Java one
-		withElement: function(e) {
+		createElement: function(e) {
 			return n.withElement(_collection.elements.get(collection.elements.indexOf(e)));
 		},
+		createPath: function() {
+      var path = Array.prototype.slice.call(arguments);
+			return _wrapNode(n.createPath(path));
+		},
+    createNode: function(name) {
+      return _wrapNode(n.createPath(name));
+    },
 		withProperty: function(k, v) {
 			n.withProperty(k, v);
 			return wrapper;
 		},
+    withVisualization: function(k, v) {
+      n.withVisualization(k, v);
+      return wrapper;
+    },
 		properties: n.properties,
 		children: n.children,
 		elements: n.elements
@@ -36,11 +47,15 @@ function _wrapNode(n) {
 	return wrapper;
 }
       
-// the rule "API"
+/**
+ * the rule "API"
+ */ 
 function createNode() {
 	var path = Array.prototype.slice.call(arguments);
 	return _wrapNode(_root.createPath(path));
 }
+createPath = createNode; // an alias
+
 function findNode() {
 	var path = Array.prototype.slice.call(arguments);
 	return _wrapNode(_root.findNode(path));
