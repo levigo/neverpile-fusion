@@ -36,7 +36,7 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, properties = "server.error.include-message=always")
 public class CollectionServiceTest extends AbstractRestAssuredTest {
   private static final String F = "aCollection";
 
