@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neverpile.fusion.model.Collection;
 import com.neverpile.fusion.model.CollectionType;
 import com.neverpile.fusion.model.Element;
-import com.neverpile.fusion.model.rules.InnerNode;
+import com.neverpile.fusion.model.rules.Node;
 import com.neverpile.fusion.model.rules.Rule;
 import com.neverpile.fusion.model.rules.RuleExecutionException;
 import com.neverpile.fusion.model.rules.ViewLayout;
@@ -44,6 +44,7 @@ public class JavascriptViewLayoutEngine {
 
   /**
    * Create layouts for all views in the given collection type.
+   * 
    * @param collection the collection for which to generate layouts
    * @param type the collection type (must match the type of the collection)
    * @return a list of {@link ViewLayout}s. One for each defined view type.
@@ -56,7 +57,7 @@ public class JavascriptViewLayoutEngine {
       Bindings bindings = preparcollectionProcessingBindings(collection);
 
       return type.getViews().stream().map(view -> {
-        InnerNode root = new InnerNode();
+        Node root = new Node();
         root.setName("root");
 
         // bind root node
@@ -104,7 +105,7 @@ public class JavascriptViewLayoutEngine {
   }
 
   private void apply(final Bindings bindings, final JavascriptRule rule, final Collection collection,
-      final Element element, final InnerNode root) {
+      final Element element, final Node root) {
     if (null == rule.getScriptCode())
       return; // nothing to do
 
@@ -124,8 +125,7 @@ public class JavascriptViewLayoutEngine {
     }
   }
 
-  public void apply(final Bindings bindings, final JavascriptRule rule, final Collection collection,
-      final InnerNode root) {
+  public void apply(final Bindings bindings, final JavascriptRule rule, final Collection collection, final Node root) {
     if (null == rule.getScriptCode())
       return; // nothing to do
 
