@@ -73,6 +73,7 @@ public class JavascriptViewLayoutEngine {
           return new ViewLayout(view.getName(), root);
         } catch (Exception e) {
           // don't throw
+          LOGGER.error("Failed to lay out view: {} for type {}", view.getName(), type.getName(), e);
           return new ViewLayout(view.getName(), "Failed to lay out view: " + e.getMessage());
         }
       }).collect(Collectors.toList());
