@@ -36,7 +36,7 @@ public class LayoutEngineTest {
   JavascriptViewLayoutEngine engine;
   
   @Test
-  public void testSomething() throws JsonProcessingException {
+  public void performTestLayout() throws JsonProcessingException {
     CollectionType t = makeTestType();
     List<ViewLayout> root = engine.layoutTree(createTestCollection(), t);
 
@@ -58,9 +58,10 @@ public class LayoutEngineTest {
     JavascriptRule cr1 = new JavascriptRule();
     cr1.setName("Put elements with foo metadata under a foo node");
     cr1.setScriptCode("if(element.metadata.foo) {"
-        + "  createElement(element, 'All foos')"
-        + "    .withProperty('foo-type', element.metadata.foo)"
-        + "    .withVisualization('html', '<b>FOO</b>');"
+        + "  createNode('All foos', element.id)"
+        + "    .withElement(element)"
+        + "      .withProperty('foo-type', element.metadata.foo)"
+        + "      .withVisualization('html', '<b>FOO</b>');"
         + "  createNode('All bars');"
         + "}");
     v1.getElementRules().add(cr1);

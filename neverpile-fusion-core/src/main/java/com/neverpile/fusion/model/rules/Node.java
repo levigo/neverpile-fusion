@@ -1,20 +1,22 @@
 package com.neverpile.fusion.model.rules;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.neverpile.fusion.model.Element;
 
 
 /**
  * A node of the view tree.
- * 
- * @param <N> the type of node
  */
 @JsonInclude(Include.NON_EMPTY)
-public class Node<N extends Node<N>> {
+public class Node {
 
   /**
    * Used-defined properties generated for this node. Properties can be anything and thus don't
@@ -27,6 +29,23 @@ public class Node<N extends Node<N>> {
    * <code>html</code>), the value is the string representation of the visualization.
    */
   private Map<String, String> visualization = new HashMap<>();
+
+  protected String name;
+  
+  /**
+   * The id of the element this node refers to.
+   */
+  private String elementId;
+
+  /**
+   * The child nodes of this node.
+   */
+  private List<Node> children = new ArrayList<>();
+
+  /**
+   * Whether the node shall be initially expanded when opening the view.
+   */
+  private boolean initiallyExpanded;
 
   public Node() {
     super();
@@ -48,15 +67,98 @@ public class Node<N extends Node<N>> {
     this.visualization = visualization;
   }
 
-  @SuppressWarnings("unchecked")
-  public N withProperty(final String name, final Object value) {
+  public Node withProperty(final String name, final Object value) {
     getProperties().put(name, value);
-    return (N) this;
+    return this;
   }
 
-  @SuppressWarnings("unchecked")
-  public N withVisualization(final String type, final String representation) {
+  public Node withVisualization(final String type, final String representation) {
     getVisualization().put(type, representation);
-    return (N) this;
+    return this;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(final String name) {
+    this.name = name;
+  }
+
+  public List<Node> getChildren() {
+    return children;
+  }
+
+  public void setChildren(final List<Node> children) {
+    this.children = Objects.requireNonNull(children, "children");
+  }
+
+  public Node createChild(final String name) {
+    Optional<Node> child = children.stream().filter(m -> Objects.equals(name, m.getName())).findFirst();
+    if (child.isPresent()) {
+      return child.get();
+    } else {
+      Node n = new Node();
+      n.setName(name);
+      children.add(n);
+      return n;
+    }
+  }
+
+  public Node findChild(final String p) {
+    return children.stream().filter(m -> Objects.equals(p, m.getName())).findFirst().orElse(null);
+  }
+
+  public Node createPath(final String... nodePath) {
+    Node n = this;
+    for (String p : nodePath) {
+      n = n.createChild(p);
+    }
+    return n;
+  }
+
+  public Node findNode(final String... nodePath) {
+    Node n = this;
+    for (String p : nodePath) {
+      n = n.findChild(p);
+      if (null == n)
+        return null;
+    }
+    return n;
+  }
+
+  public Node withElement(final Element e) {
+    setElementId(e.getId());
+    return this;
+  }
+  
+  public Node createElementNode(final Element e) {
+    return createChild(e.getId()).withElement(e);
+  }
+
+  public String getElementId() {
+    return elementId;
+  }
+
+  public void setElementId(final String elementId) {
+    this.elementId = elementId;
+  }
+  
+  public Node initiallyCollapsed() {
+    this.setInitiallyExpanded(false);
+    return this;
+  }
+  
+  public Node initiallyExpanded() {
+    this.setInitiallyExpanded(true);
+    return this;
+  }
+
+  public boolean isInitiallyExpanded() {
+    return initiallyExpanded;
+  }
+
+  public void setInitiallyExpanded(final boolean initiallyExpanded) {
+    this.initiallyExpanded = initiallyExpanded;
   }
 }

@@ -24,13 +24,25 @@ function _wrapNode(n) {
 		withElement: function(e) {
 			return n.withElement(_collection.elements.get(collection.elements.indexOf(e)));
 		},
+		createElementNode: function(e) {
+			return _wrapNode(n.createElementNode(_collection.elements.get(collection.elements.indexOf(e))));
+		},
 		withProperty: function(k, v) {
 			n.withProperty(k, v);
 			return wrapper;
 		},
+		withVisualization: function(k, v) {
+			n.withVisualization(k, v);
+			return wrapper;
+		},
+    createNode: function() {
+      var path = Array.prototype.slice.call(arguments) 
+      return _wrapNode(n.createPath(path)); 
+    },
+    initiallyExpanded: function() { n.initiallyExpanded(); return wrapper; },
+    initiallyCollapsed: function() { n.initiallyCollapsed(); return wrapper; },
 		properties: n.properties,
-		children: n.children,
-		elements: n.elements
+		children: n.children
 	};
 
 	return wrapper;
@@ -52,9 +64,9 @@ function withNode(f) {
 		f(_wrapNode(node));
 	}
 }
-function createElement(e) {
+function createElementNode(e) {
 	var path = Array.prototype.slice.call(arguments).slice(1);
-	return _root.createPath(path).withElement(
+	return _root.createPath(path).createElementNode(
 		_collection.elements.get(collection.elements.indexOf(e))
 	);
 }

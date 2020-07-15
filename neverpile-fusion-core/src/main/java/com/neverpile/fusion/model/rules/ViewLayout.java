@@ -17,7 +17,7 @@ public class ViewLayout {
   /**
    * The root node of the view structure tree.
    */
-  private InnerNode structureTree;
+  private Node structureTree;
   
   /**
    * The error that was generated during layout generation (if any). If this is not <code>null</code>, the {@link #structureTree} may be incomplete or empty.
@@ -28,7 +28,7 @@ public class ViewLayout {
   public ViewLayout() {
   }
   
-  public ViewLayout(final String viewName, final InnerNode root) {
+  public ViewLayout(final String viewName, final Node root) {
     this.view = viewName;
     this.structureTree = root;
   }
@@ -46,11 +46,11 @@ public class ViewLayout {
     this.view = viewName;
   }
 
-  public InnerNode getStructureTree() {
+  public Node getStructureTree() {
     return structureTree;
   }
 
-  public void setStructureTree(final InnerNode root) {
+  public void setStructureTree(final Node root) {
     this.structureTree = root;
   }
 }
