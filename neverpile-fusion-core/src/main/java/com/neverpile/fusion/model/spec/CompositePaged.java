@@ -5,7 +5,8 @@ import java.util.List;
 
 import org.springframework.http.MediaType;
 
-import com.jayway.jsonpath.internal.filter.ValueNode.JsonNode;
+import com.fasterxml.jackson.databind.JsonNode;
+
 
 /**
  * A collection element consisting of paged media (e.g. PDFs, scanned images, etc.) which can be
