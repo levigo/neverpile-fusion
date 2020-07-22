@@ -11,6 +11,7 @@ import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.Lob;
+import javax.persistence.OrderColumn;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -41,6 +42,7 @@ public class CollectionEntity {
   private String createdBy;
 
   @ElementCollection(fetch = FetchType.EAGER)
+  @OrderColumn(name="sequence")
   private List<ElementEntity> elements = new ArrayList<>();
 
   public String getId() {
