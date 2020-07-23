@@ -180,7 +180,7 @@ public class CollectionElementResourceTest extends AbstractRestAssuredTest {
         .post("/api/v1/collections/{c}/elements", C)
       .then()
         .log().all()
-        .statusCode(406);
+        .statusCode(409);
     // @formatter:on
   }
 
