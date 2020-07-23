@@ -306,7 +306,7 @@ public class CollectionServiceTest extends AbstractRestAssuredTest {
         .auth().preemptive().basic("user", "password")
       .when()
         .log().all()
-        .get("/api/v1/collections/{id}/{then}", F, then.toString())
+        .get("/api/v1/collections/{id}/history/{then}", F, then.toString())
       .then()
         .log().all()
         .statusCode(200)
