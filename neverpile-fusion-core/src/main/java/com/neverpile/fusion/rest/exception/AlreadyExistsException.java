@@ -22,6 +22,6 @@ public class AlreadyExistsException extends ApiException {
   private static final long serialVersionUID = 1L;
 
   public AlreadyExistsException(final String msg) {
-    super(404, msg);
+    super(HttpStatus.CONFLICT.value(), msg);
   }
 }
