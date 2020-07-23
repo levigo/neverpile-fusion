@@ -74,7 +74,7 @@ public class CollectionResource {
   }
 
   @PreSignedUrlEnabled
-  @GetMapping(value = "{collectionID}/{versionTimestamp}")
+  @GetMapping(value = "{collectionID}/history/{versionTimestamp}")
   @Timed(description = "get collection (version specified by timestamp)", extraTags = {
       "operation", "retrieve", "target", "collection"
   }, value = "fusion.collection.get-version")
