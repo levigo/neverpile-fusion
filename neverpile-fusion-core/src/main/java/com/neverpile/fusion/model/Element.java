@@ -23,7 +23,7 @@ public class Element {
   private String id;
 
   /**
-   * The metadata of the element. Metadata can consist of arbitrary JSON, the shcema of which is
+   * The metadata of the element. Metadata can consist of arbitrary JSON, the schema of which is
    * type or domain specific.
    */
   private ObjectNode metadata;
