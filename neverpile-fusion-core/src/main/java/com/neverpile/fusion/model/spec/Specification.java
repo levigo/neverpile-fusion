@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({
     @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = Artifact.class, name = "artifact"),
+    @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = EmbeddedArtifact.class, name = "embeddedArtifact"),
     @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = CompositePaged.class, name = "compositePaged"),
     @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = CollectionReference.class, name = "collectionReference"),
     @com.fasterxml.jackson.annotation.JsonSubTypes.Type(value = Query.class, name = "query")

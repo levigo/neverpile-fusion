@@ -509,11 +509,32 @@ components:
                     properties:
                       type:
                         type: string
+                        description: Must be `artifact`.
                       contentURI: 
                         type: string
                         description: The URI by which the artifact can be addressed. This may or may not be also a URL.
                           If it is not a URL, further, integration-specific resolution must be performed to turn a URI
                           into a URL suitable for loading the actual artifact data.
+                      mediaType:
+                        $ref: '#/components/schemas/MediaType'
+                  - type: object
+                    title: EmbeddedArtifact
+                    description:  A general artifact like `Artifact` which has its content embedded in the collection 
+                      instead of it being referenced from an external source. This should generally only be used for 
+                      small payload sizes up to a few kilobytes.
+                    required:
+                      - type
+                      - content
+                      - mediaType
+                    properties:
+                      type:
+                        type: string
+                        description: Must be `embeddedArtifact`.
+                      content: 
+                        type: string
+                        description: The actual artifact content. The content may be, for example, encoded as Base64. 
+                          This must be reflected in the media type by adding an appropriate parameter, e.g.
+                          `type/subtype;base64`.
                       mediaType:
                         $ref: '#/components/schemas/MediaType'
                   - type: object
@@ -525,6 +546,7 @@ components:
                     properties:
                       type:
                         type: string
+                        description: Must be `collectionReference`.
                       collectionId:
                         type: string
                         description: The id of the referenced collection.
@@ -537,6 +559,7 @@ components:
                     properties:
                       type:
                         type: string
+                        description: Must be `compositePaged`.
                       annotationData:
                         $ref: "#/components/schemas/AnnotationData"
                       pageSequences:
@@ -545,7 +568,7 @@ components:
                           title: PageSequence
                           type: object
                           required:
-                            - mediaType
+                            - type
                             - contentURI
                           properties:
                             mediaType:
