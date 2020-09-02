@@ -1,8 +1,8 @@
 package com.neverpile.fusion.jpa;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.persistence.Convert;
 import javax.persistence.Embeddable;
@@ -24,8 +24,8 @@ public class ElementEntity {
 
   private Instant dateModified;
 
-  @Convert(converter = SemicolonDelimitedStringListConverter.class)
-  private List<String> tags = new ArrayList<>();
+  @Convert(converter = SemicolonDelimitedStringSetConverter.class)
+  private Set<String> tags = new HashSet<>();
 
   @Convert(converter = JsonNodeConverter.class)
   @Lob
@@ -75,11 +75,11 @@ public class ElementEntity {
     this.specification = specification;
   }
 
-  public List<String> getTags() {
+  public Set<String> getTags() {
     return tags;
   }
 
-  public void setTags(final List<String> tags) {
+  public void setTags(final Set<String> tags) {
     this.tags = tags;
   }
 }
