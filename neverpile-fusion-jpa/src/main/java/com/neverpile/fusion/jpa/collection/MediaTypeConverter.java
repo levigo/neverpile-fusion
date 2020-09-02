@@ -1,4 +1,4 @@
-package com.neverpile.fusion.jpa;
+package com.neverpile.fusion.jpa.collection;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;

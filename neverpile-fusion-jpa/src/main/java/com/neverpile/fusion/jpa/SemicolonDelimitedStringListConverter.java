@@ -1,9 +1,8 @@
 package com.neverpile.fusion.jpa;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
@@ -17,15 +16,25 @@ import org.springframework.stereotype.Component;
 @Converter(autoApply = true)
 @Component
 public class SemicolonDelimitedStringListConverter implements AttributeConverter<List<String>, String> {
+  private static final String DELIMITER = ";";
 
   @Override
-  public String convertToDatabaseColumn(final List<String> meta) {
-    return meta.stream().map(String::trim).map(s -> s.replaceAll(";", "_")).collect(Collectors.joining(";"));
+  public String convertToDatabaseColumn(final List<String> stringList) {
+    if (stringList == null) {
+      return "";
+    }
+
+    return stringList.stream() //
+        .map(s -> s.replace(DELIMITER, "\\" + DELIMITER)) //
+        .collect(Collectors.joining(DELIMITER));
   }
 
   @Override
-  public List<String> convertToEntityAttribute(final String dbData) {
-    return dbData.isEmpty() ? Collections.emptyList() : Arrays.asList(dbData.split(";"));
+  public List<String> convertToEntityAttribute(final String string) {
+    return Stream //
+        .of(string.split("(?<!\\\\)" + DELIMITER)) //
+        .map(s -> s.replace("\\" + DELIMITER, DELIMITER)) //
+        .collect(Collectors.toList());
   }
 
 }

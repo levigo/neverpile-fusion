@@ -1,8 +1,8 @@
-package com.neverpile.fusion.jpa;
+package com.neverpile.fusion.jpa.collection;
 
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.persistence.Convert;
 import javax.persistence.Embeddable;
@@ -11,6 +11,7 @@ import javax.persistence.Table;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.neverpile.fusion.jpa.SemicolonDelimitedStringListConverter;
 
 /**
  * The entity definition representing a collection element in the database.
@@ -24,8 +25,8 @@ public class ElementEntity {
 
   private Instant dateModified;
 
-  @Convert(converter = SemicolonDelimitedStringSetConverter.class)
-  private Set<String> tags = new HashSet<>();
+  @Convert(converter = SemicolonDelimitedStringListConverter.class)
+  private List<String> tags = new ArrayList<>();
 
   @Convert(converter = JsonNodeConverter.class)
   @Lob
@@ -75,11 +76,11 @@ public class ElementEntity {
     this.specification = specification;
   }
 
-  public Set<String> getTags() {
+  public List<String> getTags() {
     return tags;
   }
 
-  public void setTags(final Set<String> tags) {
+  public void setTags(final List<String> tags) {
     this.tags = tags;
   }
 }
