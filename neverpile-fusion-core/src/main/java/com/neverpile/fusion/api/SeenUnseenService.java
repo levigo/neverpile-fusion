@@ -20,7 +20,7 @@ public interface SeenUnseenService {
    * 
    * @param contextKey the context key
    * @param principalKey the principal key
-   * @param info
+   * @param info the seen/unseen info to save
    */
   void save(String contextKey, String principalKey, SeenUnseenInfo info);
 
@@ -30,7 +30,6 @@ public interface SeenUnseenService {
    * 
    * @param contextKey the context key
    * @param principalKey the principal key
-   * @param info
    */
   void delete(String contextKey, String principalKey);
 }
