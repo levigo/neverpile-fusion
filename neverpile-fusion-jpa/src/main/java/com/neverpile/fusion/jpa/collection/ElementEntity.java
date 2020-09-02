@@ -1,4 +1,4 @@
-package com.neverpile.fusion.jpa;
+package com.neverpile.fusion.jpa.collection;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -11,6 +11,7 @@ import javax.persistence.Table;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.neverpile.fusion.jpa.SemicolonDelimitedStringListConverter;
 
 /**
  * The entity definition representing a collection element in the database.

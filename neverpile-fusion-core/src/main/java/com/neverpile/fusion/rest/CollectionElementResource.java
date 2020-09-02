@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.neverpile.common.authorization.api.CoreActions;
 import com.neverpile.fusion.api.CollectionIdStrategy;
 import com.neverpile.fusion.api.CollectionService;
-import com.neverpile.fusion.api.CollectionTypeService;
 import com.neverpile.fusion.api.exception.PermissionDeniedException;
 import com.neverpile.fusion.authorization.CollectionAuthorizationService;
 import com.neverpile.fusion.model.Collection;
@@ -46,9 +45,6 @@ public class CollectionElementResource {
 
   @Autowired
   private CollectionService collectionService;
-
-  @Autowired
-  private CollectionTypeService collectionTypeService;
 
   @Autowired
   private CollectionIdStrategy idGenerationStrategy;
