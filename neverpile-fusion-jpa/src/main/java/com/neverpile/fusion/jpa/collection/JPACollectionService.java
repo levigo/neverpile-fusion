@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.neverpile.fusion.api.CollectionService;
 import com.neverpile.fusion.api.exception.VersionMismatchException;
 import com.neverpile.fusion.api.exception.VersionNotFoundException;
+import com.neverpile.fusion.jpa.JPAConfiguration;
 import com.neverpile.fusion.model.Collection;
 
 /**
@@ -25,12 +26,14 @@ public class JPACollectionService implements CollectionService {
   private final CollectionRepository repository;
   private final ModelMapper modelMapper;
   private final Clock clock;
-
+  private final JPAConfiguration config;
+  
   @Autowired
-  public JPACollectionService(final CollectionRepository repository, final ModelMapper modelMapper, final Clock clock) {
+  public JPACollectionService(final CollectionRepository repository, final ModelMapper modelMapper, final Clock clock, final JPAConfiguration config) {
     this.repository = repository;
     this.modelMapper = modelMapper;
     this.clock = clock;
+    this.config = config;
   }
 
   @Override
@@ -76,8 +79,8 @@ public class JPACollectionService implements CollectionService {
       }
     }
 
-    // invent a version time stamp now
-    Instant newVersionTimestamp = clock.instant();
+    // invent a version time stamp now and truncate it to a resolution the database can handle
+    Instant newVersionTimestamp = clock.instant().truncatedTo(config.getTimestampResolution());
     collection.setVersionTimestamp(newVersionTimestamp);
     
     // detect backwards-running clock
