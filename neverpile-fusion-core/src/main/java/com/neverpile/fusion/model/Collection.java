@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * A collection represents a set of elements which are relevant in a certain business or domain
@@ -49,7 +49,7 @@ public class Collection {
    * The metadata of the collection. Metadata can consist of arbitrary JSON, the shcema of which is
    * type or domain specific.
    */
-  private ObjectNode metadata;
+  private JsonNode metadata;
 
   /**
    * The date when the collection was created.
@@ -131,11 +131,11 @@ public class Collection {
     this.elements = elements;
   }
 
-  public ObjectNode getMetadata() {
+  public JsonNode getMetadata() {
     return metadata;
   }
 
-  public void setMetadata(final ObjectNode metadata) {
+  public void setMetadata(final JsonNode metadata) {
     this.metadata = metadata;
   }
 

@@ -14,7 +14,7 @@ import javax.persistence.Lob;
 import javax.persistence.OrderColumn;
 import javax.persistence.Table;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * The entity definition representing a collection in the database.
@@ -33,7 +33,7 @@ public class CollectionEntity {
 
   @Convert(converter = JsonNodeConverter.class)
   @Lob
-  private ObjectNode metadata = null;
+  private JsonNode metadata = null;
 
   private Instant dateCreated;
 
@@ -69,11 +69,11 @@ public class CollectionEntity {
     this.typeId = type;
   }
 
-  public ObjectNode getMetadata() {
+  public JsonNode getMetadata() {
     return metadata;
   }
 
-  public void setMetadata(final ObjectNode metadata) {
+  public void setMetadata(final JsonNode metadata) {
     this.metadata = metadata;
   }
 
