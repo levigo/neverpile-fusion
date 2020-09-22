@@ -1,0 +1,96 @@
+openapi: 3.0.1
+
+info:
+  title: Neverpile fusion API
+  contact:
+    name: levigo solutions gmbh
+    url: https://levigo.de
+    email: solutions@levigo.de
+  version: 1.0.0
+  
+tags:
+- name: Seen/unseen
+  description: Seen/unseen service API
+
+paths:
+  /api/v1/seen/{contextKey}:
+    parameters:
+    - name: contextKey
+      in: path
+      description: The ID of the collection to be fetched
+      schema:
+        type: string
+      required: true
+
+    get:
+      tags:
+      - Seen/unseen
+      summary: Retrieve the seen/unseen info for the given context key
+      description: Return the seen/unseen information for a certain context (as indicated by the given key) and a
+        certain principal. Return an empty `SeenUnseenInfo` (indicating nothing has evern been
+        seen) if no info has previously been persisted.
+        
+      responses:
+        200:
+          description: Seen/unseen info found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SeenUnseenInfo'
+                
+    put:
+      tags:
+      - Seen/unseen
+      summary: Persist the seen/unseen info for the given context key
+      description: Persist (save or update) the seen/unseen information for a certain context (as indicated by the
+        given key) and a certain principal.
+      
+      requestBody:
+        description: the new `SeenUnseenInfo`
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SeenUnseenInfo'
+        required: true
+      
+      responses:
+        204:
+          description: Seen/unseen info persisted
+
+    delete:
+      tags:
+      - Seen/unseen
+      summary: Delete the seen/unseen info for the given context key
+      description: Persist (save or update) the seen/unseen information for a certain context (as indicated by the given key) and a certain principal.
+        
+      responses:
+        204:
+          description: Seen/unseen info deleted
+          
+components:
+  schemas:
+    SeenUnseenInfo:
+      description: |
+        A SeenUnseenInfo contains generic information about seen or unseen (read or unread) elements within a certain context. The management of seen/unseen elements is based on the following assumptions:
+        * All elements are uniquely identifiable by some key which is just a string.
+        * Elements have a modification timestamp which optionally allows all elements before some timestamp to be efficiently labeled as seen.
+        
+      type: object
+      properties:
+        seenAllBefore:
+          type: string
+          format: date-time
+          description: If set, marks all elements with a modification time stamp before or equal to the value as seen,
+            except for elements listed in `unseenKeys`.
+        seenKeys:
+          type: array
+          items:
+            type: string
+          description: Contains a list of element keys considered seen _in addition_ to the ones covered by
+            `seenAllBefore`.
+        unseenKeys:
+          type: array
+          items:
+            type: string
+          description: Contains a list of element keys considered unseen, even if their time stamp is older than
+            `seenAllBefore`.
