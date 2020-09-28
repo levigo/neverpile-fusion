@@ -39,7 +39,7 @@ public class ViewLayoutResource {
   @Timed(description = "get collection type by id", extraTags = {
       "operation", "layout", "target", "collection"
   }, value = "fusion.collection.layout")
-  public List<ViewLayout> get(@PathVariable("typeId") final String id, @RequestBody final Collection collection) {
+  public List<ViewLayout> layout(@PathVariable("typeId") final String id, @RequestBody final Collection collection) {
     CollectionType type = collectionTypeService.get(id).orElseThrow(
         () -> new NotFoundException("Collection type not found: " + id));
 
