@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.neverpile.fusion.model.spec.Specification;
 
 /**
@@ -26,7 +26,7 @@ public class Element {
    * The metadata of the element. Metadata can consist of arbitrary JSON, the schema of which is
    * type or domain specific.
    */
-  private ObjectNode metadata;
+  private JsonNode metadata;
 
   /**
    * The date when the element was created.
@@ -57,11 +57,11 @@ public class Element {
     this.id = id;
   }
 
-  public ObjectNode getMetadata() {
+  public JsonNode getMetadata() {
     return metadata;
   }
 
-  public void setMetadata(final ObjectNode metadata) {
+  public void setMetadata(final JsonNode metadata) {
     this.metadata = metadata;
   }
 

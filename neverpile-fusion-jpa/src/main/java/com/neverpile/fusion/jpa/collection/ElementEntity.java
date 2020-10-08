@@ -10,7 +10,6 @@ import javax.persistence.Lob;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.neverpile.fusion.jpa.SemicolonDelimitedStringListConverter;
 
 /**
@@ -30,7 +29,7 @@ public class ElementEntity {
 
   @Convert(converter = JsonNodeConverter.class)
   @Lob
-  private ObjectNode metadata;
+  private JsonNode metadata;
 
   @Convert(converter = JsonNodeConverter.class)
   @Lob
@@ -44,11 +43,11 @@ public class ElementEntity {
     this.id = id;
   }
 
-  public ObjectNode getMetadata() {
+  public JsonNode getMetadata() {
     return metadata;
   }
 
-  public void setMetadata(final ObjectNode metadata) {
+  public void setMetadata(final JsonNode metadata) {
     this.metadata = metadata;
   }
 
