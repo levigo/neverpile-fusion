@@ -41,29 +41,29 @@ public class SeenUnseenResource {
       "operation", "retrieve", "target", "seen/unseen"
   }, value = "fusion.seen.get")
   public SeenUnseenInfo get(@PathVariable("contextKey") final String contextKey, final Principal principal) {
-    return seenUnseenService.get(contextKey, principal.toString());
+    return seenUnseenService.get(contextKey, principal.getName());
   }
 
-  @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+  @PutMapping(value = "{contextKey}", consumes = MediaType.APPLICATION_JSON_VALUE)
   @Timed(description = "persist seen/unseen", extraTags = {
       "operation", "persist", "target", "seen/unseen"
   }, value = "fusion.seen.persist")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public ResponseEntity<Collection> createOrUpdate(@PathVariable("contextKey") final String contextKey,
       @RequestBody final SeenUnseenInfo info, final Principal principal) throws URISyntaxException {
-    seenUnseenService.save(contextKey, principal.toString(), info);
+    seenUnseenService.save(contextKey, principal.getName(), info);
 
     return ResponseEntity.noContent().build();
   }
 
-  @DeleteMapping
+  @DeleteMapping(value = "{contextKey}")
   @Timed(description = "delete seen/unseen", extraTags = {
       "operation", "delete", "target", "seen/unseen"
   }, value = "fusion.seen.delete")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public ResponseEntity<Collection> delete(@PathVariable("contextKey") final String contextKey,
       final Principal principal) throws URISyntaxException {
-    seenUnseenService.delete(contextKey, principal.toString());
+    seenUnseenService.delete(contextKey, principal.getName());
 
     return ResponseEntity.noContent().build();
   }
