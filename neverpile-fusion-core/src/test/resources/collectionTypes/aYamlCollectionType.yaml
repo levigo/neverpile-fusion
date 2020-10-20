@@ -38,3 +38,4 @@ views:
     name: This rule always errors
     scriptCode: barf();
   treeRules: []
+globalRules: []
