@@ -694,21 +694,36 @@ components:
             description: The description of the collection type
     CollectionLayout:
       description: A collection of laid-out views, one for each defined view type
-      type: array
-      items:
-        type: object
-        title: ViewLayout
-        description: A layout for a single view
-        properties:
-          view:
+      type: object
+      properties:
+        collectionTypeId:
+          type: string
+          description: The collection type's unique id
+        titleVisualization:
+          type: object
+          description: A map of visualizations generated for the title of this collection. The key is the visualization type (e.g. `html`), 
+            the value is the string representation of the visualization.
+          additionalProperties:
             type: string
-            description: The name of the view to which this layout belongs.
-          error:
-            type: string
-            nullable: true
-            description: The error that was generated during layout generation (if any).
-          structureTree:
-            $ref: "#/components/schemas/InnerNode"
+        viewLayouts:
+          type: object
+          description: The view layouts indexed by the view name (i.e. the view name is the property key)
+          additionalProperties:
+            $ref: '#/components/schemas/ViewLayout'
+    ViewLayout:
+      type: object
+      title: ViewLayout
+      description: A layout for a single view
+      properties:
+        view:
+          type: string
+          description: The name of the view to which this layout belongs.
+        error:
+          type: string
+          nullable: true
+          description: The error that was generated during layout generation (if any).
+        structureTree:
+          $ref: "#/components/schemas/InnerNode"
     Node:
       description: A node of the view tree.
       type: object

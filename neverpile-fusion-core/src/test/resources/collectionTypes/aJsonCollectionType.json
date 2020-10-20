@@ -36,5 +36,6 @@
       "scriptCode" : "barf();"
     } ],
     "treeRules" : [ ]
-  } ]
+  } ],
+  "globalRules" : [ ]
 }
