@@ -25,7 +25,7 @@ import com.neverpile.fusion.model.Collection.State;
 import com.neverpile.fusion.model.CollectionType;
 import com.neverpile.fusion.model.Element;
 import com.neverpile.fusion.model.View;
-import com.neverpile.fusion.model.rules.Layout;
+import com.neverpile.fusion.model.rules.CollectionLayout;
 import com.neverpile.fusion.model.spec.Artifact;
 
 @ExtendWith(SpringExtension.class)
@@ -79,7 +79,7 @@ public class LayoutEngineTest {
 
     f.getElements().add(e1);
 
-    Layout root = engine.layoutTree(f, t);
+    CollectionLayout root = engine.layoutTree(f, t);
 
     String s = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(root);
 
@@ -113,7 +113,7 @@ public class LayoutEngineTest {
   @Test
   public void performTestLayout() throws JSONException, IOException {
     CollectionType t = makeTestType();
-    Layout root = engine.layoutTree(createTestCollection(), t);
+    CollectionLayout root = engine.layoutTree(createTestCollection(), t);
 
     String s = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(root);
 

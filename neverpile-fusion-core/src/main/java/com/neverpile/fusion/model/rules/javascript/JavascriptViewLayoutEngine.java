@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neverpile.fusion.model.Collection;
 import com.neverpile.fusion.model.CollectionType;
 import com.neverpile.fusion.model.Element;
-import com.neverpile.fusion.model.rules.Layout;
+import com.neverpile.fusion.model.rules.CollectionLayout;
 import com.neverpile.fusion.model.rules.Node;
 import com.neverpile.fusion.model.rules.Rule;
 import com.neverpile.fusion.model.rules.RuleExecutionException;
@@ -52,11 +52,11 @@ public class JavascriptViewLayoutEngine {
    * @return a list of {@link ViewLayout}s. One for each defined view type.
    * @throws RuleExecutionException if the rule execution fails
    */
-  public Layout layoutTree(final Collection collection, final CollectionType type)
+  public CollectionLayout layoutTree(final Collection collection, final CollectionType type)
       throws RuleExecutionException {
 
     try {
-      Layout layout = new Layout();
+      CollectionLayout layout = new CollectionLayout();
       layout.setCollectionTypeId(type.getId());
       
       Bindings bindings = preparcollectionProcessingBindings(collection, layout);
@@ -96,7 +96,7 @@ public class JavascriptViewLayoutEngine {
     }
   }
 
-  private Bindings preparcollectionProcessingBindings(final Collection collection, final Layout layout)
+  private Bindings preparcollectionProcessingBindings(final Collection collection, final CollectionLayout layout)
       throws ScriptException, JsonProcessingException {
     Bindings bindings = engine.createBindings();
 

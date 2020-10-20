@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.neverpile.fusion.api.CollectionTypeService;
 import com.neverpile.fusion.model.Collection;
 import com.neverpile.fusion.model.CollectionType;
-import com.neverpile.fusion.model.rules.Layout;
+import com.neverpile.fusion.model.rules.CollectionLayout;
 import com.neverpile.fusion.model.rules.javascript.JavascriptViewLayoutEngine;
 import com.neverpile.fusion.rest.exception.NotFoundException;
 
@@ -37,7 +37,7 @@ public class ViewLayoutResource {
   @Timed(description = "get collection type by id", extraTags = {
       "operation", "layout", "target", "collection"
   }, value = "fusion.collection.layout")
-  public Layout layout(@PathVariable("typeId") final String id, @RequestBody final Collection collection) {
+  public CollectionLayout layout(@PathVariable("typeId") final String id, @RequestBody final Collection collection) {
     CollectionType type = collectionTypeService.get(id).orElseThrow(
         () -> new NotFoundException("Collection type not found: " + id));
 
