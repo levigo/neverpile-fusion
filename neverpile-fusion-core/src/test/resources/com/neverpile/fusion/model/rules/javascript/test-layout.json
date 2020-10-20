@@ -1,0 +1,101 @@
+{
+  "collectionTypeId" : "aCollectionType",
+  "titleVisualization" : { },
+  "viewLayouts" : {
+    "Error" : {
+      "view" : "Error",
+      "error" : "Failed to lay out view: Failed to execute JavaScript-based rule 'This rule always errors': ReferenceError: \"barf\" is not defined in <eval> at line number 1"
+    },
+    "Default" : {
+      "view" : "Default",
+      "structureTree" : {
+        "name" : "root",
+        "children" : [ {
+          "name" : "All foos",
+          "children" : [ {
+            "properties" : {
+              "foo-type" : "bar1"
+            },
+            "visualization" : {
+              "html" : "<b>FOO</b>"
+            },
+            "name" : "anElementId",
+            "elementId" : "anElementId",
+            "initiallyExpanded" : false
+          }, {
+            "properties" : {
+              "foo-type" : "bar2"
+            },
+            "visualization" : {
+              "html" : "<b>FOO</b>"
+            },
+            "name" : "anotherElementId",
+            "elementId" : "anotherElementId",
+            "initiallyExpanded" : false
+          } ],
+          "initiallyExpanded" : false
+        }, {
+          "name" : "All bars",
+          "initiallyExpanded" : false
+        }, {
+          "name" : "Chronological",
+          "children" : [ {
+            "properties" : {
+              "sort-by-date" : 42
+            },
+            "name" : "1970-01-01T00:00:00.042Z",
+            "elementId" : "anotherElementId",
+            "initiallyExpanded" : false
+          }, {
+            "properties" : {
+              "sort-by-date" : 815
+            },
+            "name" : "1970-01-01T00:00:00.815Z",
+            "elementId" : "anotherElementId",
+            "initiallyExpanded" : false
+          }, {
+            "properties" : {
+              "sort-by-date" : 4711
+            },
+            "name" : "1970-01-01T00:00:04.711Z",
+            "elementId" : "anElementId",
+            "initiallyExpanded" : false
+          } ],
+          "initiallyExpanded" : false
+        }, {
+          "name" : "By tag",
+          "children" : [ {
+            "name" : "Tag: foo",
+            "elementId" : "anElementId",
+            "initiallyExpanded" : false
+          }, {
+            "name" : "Tag: bar",
+            "elementId" : "anElementId",
+            "initiallyExpanded" : false
+          }, {
+            "name" : "Tag: bla",
+            "elementId" : "anotherElementId",
+            "initiallyExpanded" : false
+          }, {
+            "name" : "Tag: blubb",
+            "elementId" : "anotherElementId",
+            "initiallyExpanded" : false
+          }, {
+            "name" : "Tag: yada",
+            "elementId" : "anotherElementId",
+            "initiallyExpanded" : false
+          } ],
+          "initiallyExpanded" : false
+        }, {
+          "visualization" : {
+            "html" : "<b>YADA bar2</b>"
+          },
+          "name" : "All yadas",
+          "elementId" : "anotherElementId",
+          "initiallyExpanded" : false
+        } ],
+        "initiallyExpanded" : false
+      }
+    }
+  }
+}

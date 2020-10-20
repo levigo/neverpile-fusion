@@ -51,5 +51,4 @@ public class View {
   public void setTreeRules(final List<Rule> treeRules) {
     this.treeRules = requireNonNull(treeRules, "treeRules");
   }
-
 }

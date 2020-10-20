@@ -1,7 +1,8 @@
 package com.neverpile.fusion.model.rules.javascript;
 
+import static java.util.function.Function.identity;
+
 import java.io.InputStreamReader;
-import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.script.Bindings;
@@ -19,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neverpile.fusion.model.Collection;
 import com.neverpile.fusion.model.CollectionType;
 import com.neverpile.fusion.model.Element;
+import com.neverpile.fusion.model.rules.Layout;
 import com.neverpile.fusion.model.rules.Node;
 import com.neverpile.fusion.model.rules.Rule;
 import com.neverpile.fusion.model.rules.RuleExecutionException;
@@ -50,13 +52,20 @@ public class JavascriptViewLayoutEngine {
    * @return a list of {@link ViewLayout}s. One for each defined view type.
    * @throws RuleExecutionException if the rule execution fails
    */
-  public List<ViewLayout> layoutTree(final Collection collection, final CollectionType type)
+  public Layout layoutTree(final Collection collection, final CollectionType type)
       throws RuleExecutionException {
 
     try {
-      Bindings bindings = preparcollectionProcessingBindings(collection);
+      Layout layout = new Layout();
+      layout.setCollectionTypeId(type.getId());
+      
+      Bindings bindings = preparcollectionProcessingBindings(collection, layout);
 
-      return type.getViews().stream().map(view -> {
+      // apply library rules
+      CollectionType layouts = type;
+      layouts.getGlobalRules().forEach(lib -> apply(bindings, (JavascriptRule) lib, collection));
+      
+      layout.setViewLayouts(layouts.getViews().stream().map(view -> {
         Node root = new Node();
         root.setName("root");
 
@@ -68,15 +77,18 @@ public class JavascriptViewLayoutEngine {
           collection.getElements().forEach(element -> view.getElementRules().forEach(
               rule -> apply(bindings, (JavascriptRule) rule, collection, element, root)));
 
-          view.getTreeRules().forEach(rule -> apply(bindings, (JavascriptRule) rule, collection, root));
+          // apply tree rules
+          view.getTreeRules().forEach(rule -> apply(bindings, (JavascriptRule) rule, collection));
 
           return new ViewLayout(view.getName(), root);
         } catch (Exception e) {
           // don't throw
-          LOGGER.error("Failed to lay out view: {} for type {}", view.getName(), type.getName(), e);
+          LOGGER.info("Failed to lay out view: {} for type {}", view.getName(), layouts.getName(), e);
           return new ViewLayout(view.getName(), "Failed to lay out view: " + e.getMessage());
         }
-      }).collect(Collectors.toList());
+      }).collect(Collectors.toMap(ViewLayout::getView, identity())));
+      
+      return layout;
     } catch (ScriptException e) {
       throw new RuleExecutionException("global", "Failed to initialize tree layout engine", e);
     } catch (JsonProcessingException e) {
@@ -84,7 +96,7 @@ public class JavascriptViewLayoutEngine {
     }
   }
 
-  private Bindings preparcollectionProcessingBindings(final Collection collection)
+  private Bindings preparcollectionProcessingBindings(final Collection collection, final Layout layout)
       throws ScriptException, JsonProcessingException {
     Bindings bindings = engine.createBindings();
 
@@ -93,6 +105,7 @@ public class JavascriptViewLayoutEngine {
 
     // intialize private bindings
     bindings.put("_collection", collection);
+    bindings.put("_layout", layout);
 
     // expose the collection as JSON to the scripting context
     engine.eval("var collection = " + objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(collection),
@@ -125,7 +138,7 @@ public class JavascriptViewLayoutEngine {
     }
   }
 
-  public void apply(final Bindings bindings, final JavascriptRule rule, final Collection collection, final Node root) {
+  public void apply(final Bindings bindings, final JavascriptRule rule, final Collection collection) {
     if (null == rule.getScriptCode())
       return; // nothing to do
 

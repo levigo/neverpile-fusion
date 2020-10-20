@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.neverpile.fusion.model.rules.Rule;
+
 /**
  * A type definition for a collection. Each collection belongs to one of the defined collection
  * types. The type describes the tags permitted for elements of a collection and contains rules that
@@ -39,6 +41,16 @@ public class CollectionType {
    * The list of views defined for this collection type.
    */
   private List<View> views = new ArrayList<>();
+
+  /**
+   * A list of global rules. They can be used to set the layout title, but also to prepare the
+   * environment for other rule executions. This assumes that rule execution maintains some form of
+   * persistent state. For JavaScript-based rules this means that results of the global rule
+   * executions (variables, function definitions etc.) are available to subsequent rule executions.
+   * <p>
+   * Global rules are executed once, before all other rule executions.
+   */
+  private List<Rule> globalRules = new ArrayList<>();
 
   public String getId() {
     return id;
@@ -86,6 +98,14 @@ public class CollectionType {
 
   public void setViews(final List<View> views) {
     this.views = Objects.requireNonNull(views, "views");
+  }
+
+  public List<Rule> getGlobalRules() {
+    return globalRules;
+  }
+
+  public void setGlobalRules(final List<Rule> library) {
+    this.globalRules = library;
   }
 
 }
