@@ -62,10 +62,9 @@ public class JavascriptViewLayoutEngine {
       Bindings bindings = preparcollectionProcessingBindings(collection, layout);
 
       // apply library rules
-      CollectionType layouts = type;
-      layouts.getGlobalRules().forEach(lib -> apply(bindings, (JavascriptRule) lib, collection));
+      type.getGlobalRules().forEach(lib -> apply(bindings, (JavascriptRule) lib));
       
-      layout.setViewLayouts(layouts.getViews().stream().map(view -> {
+      layout.setViewLayouts(type.getViews().stream().map(view -> {
         Node root = new Node();
         root.setName("root");
 
@@ -75,15 +74,15 @@ public class JavascriptViewLayoutEngine {
         try {
           // apply node creation rules
           collection.getElements().forEach(element -> view.getElementRules().forEach(
-              rule -> apply(bindings, (JavascriptRule) rule, collection, element, root)));
+              rule -> apply(bindings, (JavascriptRule) rule, collection, element)));
 
           // apply tree rules
-          view.getTreeRules().forEach(rule -> apply(bindings, (JavascriptRule) rule, collection));
+          view.getTreeRules().forEach(rule -> apply(bindings, (JavascriptRule) rule));
 
           return new ViewLayout(view.getName(), root);
         } catch (Exception e) {
           // don't throw
-          LOGGER.info("Failed to lay out view: {} for type {}", view.getName(), layouts.getName(), e);
+          LOGGER.info("Failed to lay out view: {} for type {}", view.getName(), type.getName(), e);
           return new ViewLayout(view.getName(), "Failed to lay out view: " + e.getMessage());
         }
       }).collect(Collectors.toMap(ViewLayout::getView, identity())));
@@ -118,7 +117,7 @@ public class JavascriptViewLayoutEngine {
   }
 
   private void apply(final Bindings bindings, final JavascriptRule rule, final Collection collection,
-      final Element element, final Node root) {
+      final Element element) {
     if (null == rule.getScriptCode())
       return; // nothing to do
 
@@ -138,7 +137,7 @@ public class JavascriptViewLayoutEngine {
     }
   }
 
-  public void apply(final Bindings bindings, final JavascriptRule rule, final Collection collection) {
+  public void apply(final Bindings bindings, final JavascriptRule rule) {
     if (null == rule.getScriptCode())
       return; // nothing to do
 
