@@ -10,6 +10,7 @@ import com.neverpile.common.authorization.api.Action;
 import com.neverpile.common.authorization.api.AuthorizationContext;
 import com.neverpile.common.authorization.api.AuthorizationContextContributor;
 import com.neverpile.common.authorization.api.AuthorizationService;
+import com.neverpile.common.authorization.api.Permission;
 import com.neverpile.common.authorization.policy.impl.CompositeAuthorizationContext;
 import com.neverpile.common.authorization.policy.impl.PrefixAuthorizationContext;
 import com.neverpile.fusion.model.Collection;
@@ -37,6 +38,16 @@ public class CollectionAuthorizationService {
   public boolean authorizeCollectionAction(final Collection collection, final Action action) {
     return authorizationService.isAccessAllowed("collection", Collections.singleton(action),
         constructAuthorizationContext(collection));
+  }
+
+  /**
+   * Get the client permissions for the given collection
+   * 
+   * @param collection the collection
+   * @return the client permissions
+   */
+  public List<Permission> getClientPermissions(final Collection collection) {
+    return authorizationService.getPermissions("collection", constructAuthorizationContext(collection));
   }
 
   private AuthorizationContext constructAuthorizationContext(final Collection collection) {
