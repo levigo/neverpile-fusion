@@ -83,7 +83,7 @@ paths:
       parameters:
       - name: collectionID
         in: path
-        description: The ID of the dossier to be saved
+        description: The ID of the collection to be saved
         schema:
           type: string
         required: true
@@ -292,7 +292,7 @@ paths:
       parameters:
       - name: collectionID
         in: path
-        description: The ID of the dossier to be fetched
+        description: The ID of the collection to be fetched
         schema:
           type: string
         required: true
@@ -312,6 +312,31 @@ paths:
                 $ref: '#/components/schemas/Collection'
         400:
           description: Invalid collectionID and/or version timestamp supplied
+        404:
+          description: Collection not found
+
+  /api/v1/collections/{collectionID}/permissions:
+    get:
+      tags:
+      - Collection
+      - Permissions
+      summary: Get the client-permissions applicable to a collection
+      parameters:
+      - name: collectionID
+        in: path
+        description: The ID of the collection for which the permissions shall be fetched
+        schema:
+          type: string
+        required: true
+      responses:
+        200:
+          description: Collection found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Permissions'
+        400:
+          description: Invalid collectionID supplied
         404:
           description: Collection not found
 
@@ -766,3 +791,27 @@ components:
           id:
             type: string
             description: The id of the element this node refers to.
+            
+    Permissions:
+      description: A list of `Permission`s to be evaluated in order to make client-side authorization decisions.
+        Permissions are to be evaluated sequentially by matching a desired action against the permission's `actionKeys`.
+        Once a matching permission is found, the permission's `effect` shall be chosen as the evaluation's outcome.
+      type: array
+      items: 
+        type: object
+        properties:
+          effect:
+            type: string
+            enum:
+            - ALLOW
+            - DENY
+            description: The effect to be caused by a match of this permission.
+              * `ALLOW` - allow the action 
+              * `deny` - deny the action 
+          actionKeys:
+            type: array
+            items:
+              type: string
+            description: The action keys this permission affects. In order to ensure uniqueness, actions can 
+              choose to apply name-spacing of the form `namespace:action-name`. E.g. all core actions are prefixed 
+              with the namespace `core:`. They may also use the trailing wildcard `*`.

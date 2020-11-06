@@ -18,8 +18,10 @@ import com.neverpile.fusion.rest.exception.NotFoundException;
 import io.micrometer.core.annotation.Timed;
 
 /**
- * A REST resource providing view layout services. While certain client implementations may be able
- * to perform view layout generation on their own, this service can be used by clients which cannot.
+ * A resource providing client permissions pertaining to a collection. See
+ * {@link CollectionAuthorizationService#getClientPermissions(Collection)}. For details see also the
+ * OpenAPI specification in
+ * /neverpile-fusion-core/src/main/resources/com/neverpile/fusion/fusion-core.yaml.
  */
 @RestController
 @RequestMapping(path = "/api/v1/collections", produces = {
