@@ -28,6 +28,7 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -36,6 +37,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.neverpile.common.authorization.policy.impl.AuthorityAuthenticationMatcher;
 import com.neverpile.eureka.client.EurekaClient;
 import com.neverpile.eureka.client.core.NeverpileEurekaClient;
 import com.neverpile.eureka.util.EnableNeverpileEurekaSpringApplication;
@@ -65,6 +67,7 @@ public class EurekaCollectionServiceTest {
   @EnableWebSecurity
   @Configuration
   @Order(SecurityProperties.BASIC_AUTH_ORDER)
+  @Import(AuthorityAuthenticationMatcher.class)
   public static class TestSecurityConfig extends WebSecurityConfigurerAdapter {
     // @Bean
     // public AuthorizationService authorizationService() {
@@ -154,24 +157,24 @@ public class EurekaCollectionServiceTest {
     assertThat(collectionService.getVersion(tf.getId(), v1)).isNotEmpty();
     assertThat(collectionService.getVersion(tf.getId(), v2)).isNotEmpty();
   }
-  
+
   @Test
   public void testThat_versionListCanBeRetrieved() {
     Collection tf = createTestCollection();
     tf.setId(UUID.randomUUID().toString());
-    
+
     // V1
     Instant v1 = Instant.ofEpochMilli(1);
     when(clock.instant()).thenReturn(v1);
     tf.setVersionTimestamp(null);
     assertThat(collectionService.save(tf).getVersionTimestamp()).isEqualTo(v1);
-    
+
     // V2
     Instant v2 = Instant.ofEpochMilli(2);
     when(clock.instant()).thenReturn(v2);
     tf.setVersionTimestamp(v1);
     assertThat(collectionService.save(tf).getVersionTimestamp()).isEqualTo(v2);
-    
+
     // both versions must exist
     List<Instant> versions = collectionService.getVersions(tf.getId());
     assertThat(versions).containsExactly(v1, v2);
@@ -245,20 +248,20 @@ public class EurekaCollectionServiceTest {
   public void testThat_collectionCanBeRetrieved() {
     Collection tf = createTestCollection();
     tf.setId(UUID.randomUUID().toString());
-    
+
     // Save two versions, as in tests above...
     // V1
     Instant v1 = Instant.ofEpochMilli(1);
     when(clock.instant()).thenReturn(v1);
     tf.setVersionTimestamp(null);
     assertThat(collectionService.save(tf).getVersionTimestamp()).isEqualTo(v1);
-    
+
     // V2
     Instant v2 = Instant.ofEpochMilli(2);
     when(clock.instant()).thenReturn(v2);
     tf.setVersionTimestamp(v1);
     assertThat(collectionService.save(tf).getVersionTimestamp()).isEqualTo(v2);
-    
+
     // ...but have a closed look at the results
     // retrieve current version
     Optional<Collection> currentOpt = collectionService.getCurrent(tf.getId());
@@ -267,7 +270,7 @@ public class EurekaCollectionServiceTest {
     assertThat(current.getId()).isEqualTo(tf.getId());
     assertThat(current.getVersionTimestamp()).isEqualTo(v2);
     assertThat(current.getCreatedBy()).isEqualTo("user");
-    
+
     // retrieve old version
     Optional<Collection> oldOpt = collectionService.getVersion(tf.getId(), v1);
     assertThat(oldOpt).isNotEmpty();
@@ -276,7 +279,7 @@ public class EurekaCollectionServiceTest {
     assertThat(old.getVersionTimestamp()).isEqualTo(v1);
     assertThat(old.getCreatedBy()).isEqualTo("user");
   }
-  
+
   private Collection createTestCollection() {
     Collection f = new Collection();
     f.setTypeId("aCollectionType");
