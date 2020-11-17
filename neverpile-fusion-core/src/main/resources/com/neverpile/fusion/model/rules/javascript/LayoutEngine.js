@@ -42,7 +42,9 @@ function _wrapNode(n) {
     initiallyExpanded: function () { n.initiallyExpanded(); return wrapper; },
     initiallyCollapsed: function () { n.initiallyCollapsed(); return wrapper; },
     properties: n.properties,
-    children: n.children
+    children: n.children,
+    onDragover: function (executable) { n.onDragover(executable); return wrapper; },
+    onDrop: function (executable) { n.onDrop(executable); return wrapper; }
   };
 
   return wrapper;
@@ -121,7 +123,7 @@ if (!Array.prototype.includes) {
         if (sameValueZero(o[k], searchElement)) {
           return true;
         }
-        // c. Increase k by 1. 
+        // c. Increase k by 1.
         k++;
       }
 

@@ -31,7 +31,7 @@ public class Node {
   private Map<String, String> visualization = new HashMap<>();
 
   protected String name;
-  
+
   /**
    * The id of the element this node refers to.
    */
@@ -46,6 +46,16 @@ public class Node {
    * Whether the node shall be initially expanded when opening the view.
    */
   private boolean initiallyExpanded;
+
+  /**
+   * String containing a native JavaScript function, executed on dragover.
+   */
+  private String onDragoverExecutable;
+
+  /**
+   * String containing a native JavaScript function, executed on drop.
+   */
+  private String onDropExecutable;
 
   public Node() {
     super();
@@ -131,7 +141,7 @@ public class Node {
     setElementId(e.getId());
     return this;
   }
-  
+
   public Node createElementNode(final Element e) {
     return createChild(e.getId()).withElement(e);
   }
@@ -143,12 +153,12 @@ public class Node {
   public void setElementId(final String elementId) {
     this.elementId = elementId;
   }
-  
+
   public Node initiallyCollapsed() {
     this.setInitiallyExpanded(false);
     return this;
   }
-  
+
   public Node initiallyExpanded() {
     this.setInitiallyExpanded(true);
     return this;
@@ -160,5 +170,40 @@ public class Node {
 
   public void setInitiallyExpanded(final boolean initiallyExpanded) {
     this.initiallyExpanded = initiallyExpanded;
+  }
+
+  public String getOnDragoverExecutable() {
+    return this.onDragoverExecutable;
+  }
+
+  public String getOnDropExecutable() {
+    return this.onDropExecutable;
+  }
+
+  /**
+   * The function (defined in parameter 'executable') will be executed when the native Dragover Event is fired.
+   * The given executable will be called with the parameter 'event', which is a reference to the JavaScript native DragEvent.
+   *
+   * @param executable A native JavaScript function.
+   * @return This node instance.
+   */
+  @SuppressWarnings("unchecked")
+  public Node onDragover(final String executable) {
+    this.onDragoverExecutable = executable;
+    return this;
+  }
+
+  /**
+   * The function (defined in parameter 'executable') will be executed when the native Drop Event is fired.
+   * Whether or not content may be dropped on this Node can be controlled with the 'onDragover' function.
+   * The given executable will be called with the parameter 'event', which is a reference to the JavaScript native DragEvent.
+   *
+   * @param executable A native JavaScript function.
+   * @return This node instance.
+   */
+  @SuppressWarnings("unchecked")
+  public Node onDrop(final String executable) {
+    this.onDropExecutable = executable;
+    return this;
   }
 }
