@@ -106,7 +106,7 @@ public class JPACollectionService implements CollectionService {
   private Optional<CollectionEntity> findByIdAndVersionTimestamp(String id, Instant versionTimestamp) {
     Instant start = versionTimestamp.truncatedTo(ChronoUnit.MILLIS);
     Instant end = start.plus(Duration.ofMillis(1));
-    return repository.findByIdAndVersionTimestampAfterAndVersionTimestampBefore(id, start, end);
+    return repository.findByIdAndVersionTimestampBetween(id, start, end);
   }
 
 }

@@ -12,7 +12,7 @@ import org.springframework.data.repository.CrudRepository;
  */
 public interface CollectionRepository extends CrudRepository<CollectionEntity, IdAndVersionTimestamp> {
 
-  Optional<CollectionEntity> findByIdAndVersionTimestampAfterAndVersionTimestampBefore(String id,
+  Optional<CollectionEntity> findByIdAndVersionTimestampBetween(String id,
       Instant versionTimestampStart, Instant versionTimestampEnd);
 
   @Query("select f from CollectionEntity f where f.id = ?1 and f.versionTimestamp = "
