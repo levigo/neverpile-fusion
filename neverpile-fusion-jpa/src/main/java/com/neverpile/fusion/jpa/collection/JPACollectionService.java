@@ -1,7 +1,9 @@
 package com.neverpile.fusion.jpa.collection;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -43,7 +45,7 @@ public class JPACollectionService implements CollectionService {
 
   @Override
   public Optional<Collection> getVersion(final String id, final Instant versionTimestamp) {
-    return repository.findByIdAndVersionTimestamp(id, versionTimestamp) //
+    return findByIdAndVersionTimestamp(id, versionTimestamp) //
         .map(e -> modelMapper.map(e, Collection.class));
   }
 
@@ -99,6 +101,12 @@ public class JPACollectionService implements CollectionService {
           mostRecentVersionAfterSave.toString());
 
     return saved;
+  }
+
+  private Optional<CollectionEntity> findByIdAndVersionTimestamp(String id, Instant versionTimestamp) {
+    Instant start = versionTimestamp.truncatedTo(ChronoUnit.MILLIS);
+    Instant end = start.plus(Duration.ofMillis(1));
+    return repository.findByIdAndVersionTimestampAfterAndVersionTimestampBefore(id, start, end);
   }
 
 }
