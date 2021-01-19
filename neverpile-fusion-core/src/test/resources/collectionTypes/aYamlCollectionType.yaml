@@ -6,6 +6,15 @@ permittedTags:
 - foo
 - bar
 - baz
+editableMetadata:
+  create:
+    - key: foo.bar
+      label: test
+    - key: foo.baz
+      label: test2
+  edit:
+    - key: foo.bar
+      label: test
 allowAllTags: false
 views:
 - name: Default

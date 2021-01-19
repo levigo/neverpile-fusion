@@ -33,6 +33,11 @@ public class CollectionType {
   private List<String> permittedTags;
 
   /**
+   * Defined editable metadata for creating and editing of elements.
+   */
+  private EditableMetadata editableMetadata;
+
+  /**
    * Whether to allow arbitrary tags in addition to the ones defined in {@link #permittedTags}.
    */
   private boolean allowAllTags;
@@ -83,6 +88,15 @@ public class CollectionType {
   public void setPermittedTags(final List<String> tags) {
     this.permittedTags = tags;
   }
+
+  public EditableMetadata getEditableMetadata() {
+    return editableMetadata;
+  }
+
+  public void setEditableMetadata(EditableMetadata editableMetadata) {
+    this.editableMetadata = editableMetadata;
+  }
+
 
   public boolean isAllowAllTags() {
     return allowAllTags;

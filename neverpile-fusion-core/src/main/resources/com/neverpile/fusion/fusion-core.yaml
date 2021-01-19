@@ -657,6 +657,34 @@ components:
           items:
             type: string
             pattern: '[\w .-_/]+'
+        editableMetadata:
+          type: object
+          description: Defined editable metadata for creating and editing of elements.
+          properties:
+            create:
+              type: array
+              description: The list of editable metadata when creating new elements.
+              items:
+                type: object
+                description: Metadata element containing the property key and a corresponding label.
+                properties:
+                  key:
+                    type: string
+                    pattern: '^(?![0-9])[a-zA-Z0-9.]+$'
+                  label:
+                    type: string
+            edit:
+              type: array
+              description: The list of editable metadata when editing existing elements.
+              items:
+                type: object
+                description: Metadata element containing the property key and a corresponding label.
+                properties:
+                  key:
+                    type: string
+                    pattern: '^(?![0-9])[a-zA-Z0-9.]+$'
+                  label:
+                    type: string
         allowAllTags:
           type: boolean
           description: Whether to allow arbitrary tags in addition to the ones defined in `permittedTags`.

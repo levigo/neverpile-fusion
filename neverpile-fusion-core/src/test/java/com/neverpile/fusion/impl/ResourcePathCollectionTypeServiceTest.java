@@ -21,6 +21,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neverpile.fusion.configuration.JacksonConfiguration;
 import com.neverpile.fusion.model.CollectionType;
+import com.neverpile.fusion.model.EditableMetadata;
 import com.neverpile.fusion.model.View;
 import com.neverpile.fusion.model.rules.javascript.JavascriptRule;
 
@@ -72,6 +73,22 @@ public class ResourcePathCollectionTypeServiceTest {
 
     t.setId("aCollectionType");
     t.setPermittedTags(Arrays.asList("foo", "bar", "baz"));
+
+    EditableMetadata editableMetadata = new EditableMetadata();
+    EditableMetadata.EditableMetadataEntry[] edit = new EditableMetadata.EditableMetadataEntry[1];
+    edit[0] = new EditableMetadata.EditableMetadataEntry();
+    edit[0].setKey("foo.bar");
+    edit[0].setLabel("test");
+    editableMetadata.setEdit(edit);
+    EditableMetadata.EditableMetadataEntry[] create = new EditableMetadata.EditableMetadataEntry[2];
+    create[0] = new EditableMetadata.EditableMetadataEntry();
+    create[0].setKey("foo.bar");
+    create[0].setLabel("test");
+    create[1] = new EditableMetadata.EditableMetadataEntry();
+    create[1].setKey("foo.baz");
+    create[1].setLabel("test2");
+    editableMetadata.setCreate(create);
+    t.setEditableMetadata(editableMetadata);
     t.setName("A very basic collection type");
     t.setDescription("A collection type used to test fusion");
 
