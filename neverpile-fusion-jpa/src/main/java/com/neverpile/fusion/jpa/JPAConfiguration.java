@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 @Component
 @ConfigurationProperties("neverpile-fusion.jpa")
 public class JPAConfiguration {
-  private ChronoUnit timestampResolution = ChronoUnit.MICROS;
+  private ChronoUnit timestampResolution = ChronoUnit.MILLIS;
 
   public ChronoUnit getTimestampResolution() {
     return timestampResolution;

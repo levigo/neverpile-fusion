@@ -62,12 +62,12 @@ public class JPACollectionServiceTest {
     Collection tf = createTestCollection();
     tf.setId(UUID.randomUUID().toString());
     
-    when(clock.instant()).thenReturn(Instant.ofEpochMilli(1));
+    when(clock.instant()).thenReturn(Instant.ofEpochMilli(10));
     
     Collection saved = collectionService.save(tf);
     
     assertThat(saved.getId()).isNotNull();
-    assertThat(saved.getVersionTimestamp()).isEqualTo(Instant.ofEpochMilli(1));
+    assertThat(saved.getVersionTimestamp()).isEqualTo(Instant.ofEpochMilli(10));
     
     // reload and verify contents
     Optional<Collection> reloaded = collectionService.getVersion(saved.getId(), saved.getVersionTimestamp());
@@ -82,13 +82,13 @@ public class JPACollectionServiceTest {
     tf.setId(UUID.randomUUID().toString());
     
     // V1
-    Instant v1 = Instant.ofEpochMilli(1);
+    Instant v1 = Instant.ofEpochMilli(10);
     when(clock.instant()).thenReturn(v1);
     tf.setVersionTimestamp(null);
     assertThat(collectionService.save(tf).getVersionTimestamp()).isEqualTo(v1);
     
     // V2
-    Instant v2 = Instant.ofEpochMilli(2);
+    Instant v2 = Instant.ofEpochMilli(20);
     when(clock.instant()).thenReturn(v2);
     tf.setVersionTimestamp(v1);
     assertThat(collectionService.save(tf).getVersionTimestamp()).isEqualTo(v2);
@@ -104,7 +104,7 @@ public class JPACollectionServiceTest {
     tf.setId(UUID.randomUUID().toString());
     
     // V1
-    Instant v1 = Instant.ofEpochMilli(1);
+    Instant v1 = Instant.ofEpochMilli(10);
     when(clock.instant()).thenReturn(v1);
     tf.setVersionTimestamp(v1);
     
@@ -116,9 +116,9 @@ public class JPACollectionServiceTest {
     Collection tf = createTestCollection();
     tf.setId(UUID.randomUUID().toString());
     
-    Instant v1 = Instant.ofEpochMilli(1);
-    Instant v2 = Instant.ofEpochMilli(2);
-    Instant v3 = Instant.ofEpochMilli(3);
+    Instant v1 = Instant.ofEpochMilli(10);
+    Instant v2 = Instant.ofEpochMilli(20);
+    Instant v3 = Instant.ofEpochMilli(30);
     
     // save V1
     tf.setVersionTimestamp(null);
@@ -141,9 +141,9 @@ public class JPACollectionServiceTest {
     Collection tf = createTestCollection();
     tf.setId(UUID.randomUUID().toString());
     
-    Instant v1 = Instant.ofEpochMilli(1);
-    Instant v2 = Instant.ofEpochMilli(2);
-    Instant v3 = Instant.ofEpochMilli(3);
+    Instant v1 = Instant.ofEpochMilli(10);
+    Instant v2 = Instant.ofEpochMilli(20);
+    Instant v3 = Instant.ofEpochMilli(30);
     
     // save V1
     tf.setVersionTimestamp(null);
@@ -166,15 +166,15 @@ public class JPACollectionServiceTest {
     f.setTypeId("aCollectionType");
     f.setState(State.Active);
 
-    f.setDateCreated(Instant.ofEpochMilli(1));
-    f.setDateModified(Instant.ofEpochMilli(1));
+    f.setDateCreated(Instant.ofEpochMilli(10));
+    f.setDateModified(Instant.ofEpochMilli(10));
     f.setCreatedBy("user");
     f.setMetadata(objectMapper.createObjectNode().put("foo", "bar"));
 
     Element e1 = new Element();
     e1.setId("anElementId");
-    e1.setDateCreated(Instant.ofEpochMilli(1));
-    e1.setDateModified(Instant.ofEpochMilli(1));
+    e1.setDateCreated(Instant.ofEpochMilli(10));
+    e1.setDateModified(Instant.ofEpochMilli(10));
     e1.setTags(Arrays.asList("foo", "bar"));
     e1.setMetadata(objectMapper.createObjectNode().put("foo", "baz"));
 
@@ -187,8 +187,8 @@ public class JPACollectionServiceTest {
 
     Element e2 = new Element();
     e2.setId("anotherElementId");
-    e2.setDateCreated(Instant.ofEpochMilli(1));
-    e2.setDateModified(Instant.ofEpochMilli(1));
+    e2.setDateCreated(Instant.ofEpochMilli(10));
+    e2.setDateModified(Instant.ofEpochMilli(10));
     e2.setTags(Arrays.asList("foo", "bar"));
     e2.setMetadata(objectMapper.createObjectNode().put("foo", "baz"));
 
@@ -226,8 +226,8 @@ public class JPACollectionServiceTest {
   private void verifyTestCollection(final Collection f) {
     assertThat(f.getTypeId()).isEqualTo("aCollectionType");
     assertThat(f.getState()).isEqualTo(State.Active);
-    assertThat(f.getDateCreated()).isEqualTo(Instant.ofEpochMilli(1));
-    assertThat(f.getDateModified()).isEqualTo(Instant.ofEpochMilli(1));
+    assertThat(f.getDateCreated()).isEqualTo(Instant.ofEpochMilli(10));
+    assertThat(f.getDateModified()).isEqualTo(Instant.ofEpochMilli(10));
     assertThat(f.getCreatedBy()).isEqualTo("user");
   
     assertThat(f.getMetadata().findPath("foo").asText()).isEqualTo("bar");
@@ -236,8 +236,8 @@ public class JPACollectionServiceTest {
     
     Element e1 = f.getElements().get(0);
     assertThat(e1.getId()).isEqualTo("anElementId");
-    assertThat(e1.getDateCreated()).isEqualTo(Instant.ofEpochMilli(1));
-    assertThat(e1.getDateModified()).isEqualTo(Instant.ofEpochMilli(1));
+    assertThat(e1.getDateCreated()).isEqualTo(Instant.ofEpochMilli(10));
+    assertThat(e1.getDateModified()).isEqualTo(Instant.ofEpochMilli(10));
     assertThat(e1.getTags()).containsExactly("foo", "bar");
     assertThat(e1.getMetadata().findPath("foo").asText()).isEqualTo("baz");
     assertThat(e1.getSpecification()).isInstanceOf(Artifact.class);

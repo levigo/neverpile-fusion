@@ -1,6 +1,7 @@
 package com.neverpile.fusion.jpa.collection;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
@@ -19,7 +20,7 @@ import com.neverpile.fusion.jpa.JPAConfiguration;
 import com.neverpile.fusion.model.Collection;
 
 /**
- * An implementation of {@link CollectionService} which persists collections to a SQL database via JPA. 
+ * An implementation of {@link CollectionService} which persists collections to a SQL database via JPA.
  */
 @Component
 public class JPACollectionService implements CollectionService {
@@ -27,9 +28,10 @@ public class JPACollectionService implements CollectionService {
   private final ModelMapper modelMapper;
   private final Clock clock;
   private final JPAConfiguration config;
-  
+
   @Autowired
-  public JPACollectionService(final CollectionRepository repository, final ModelMapper modelMapper, final Clock clock, final JPAConfiguration config) {
+  public JPACollectionService(final CollectionRepository repository, final ModelMapper modelMapper, final Clock clock,
+      final JPAConfiguration config) {
     this.repository = repository;
     this.modelMapper = modelMapper;
     this.clock = clock;
@@ -43,7 +45,7 @@ public class JPACollectionService implements CollectionService {
 
   @Override
   public Optional<Collection> getVersion(final String id, final Instant versionTimestamp) {
-    return repository.findByIdAndVersionTimestamp(id, versionTimestamp) //
+    return findByIdAndVersionTimestamp(id, versionTimestamp) //
         .map(e -> modelMapper.map(e, Collection.class));
   }
 
@@ -62,7 +64,7 @@ public class JPACollectionService implements CollectionService {
       if (currentVersion.isPresent()) {
         // saving new version with version timestamp set to the current one
         Instant currentTimestamp = currentVersion.get();
-        if (!currentTimestamp.equals(collection.getVersionTimestamp()))
+        if (!equalsWithinPrecision(currentTimestamp, collection.getVersionTimestamp()))
           throw new VersionMismatchException("Failed to update collection: version is not the current one",
               currentTimestamp.toString(), collection.getVersionTimestamp().toString());
       } else {
@@ -82,14 +84,15 @@ public class JPACollectionService implements CollectionService {
     // invent a version time stamp now and truncate it to a resolution the database can handle
     Instant newVersionTimestamp = clock.instant().truncatedTo(config.getTimestampResolution());
     collection.setVersionTimestamp(newVersionTimestamp);
-    
+
     // detect backwards-running clock
-    if(currentVersion.isPresent() && !currentVersion.get().isBefore(newVersionTimestamp))
+    if (currentVersion.isPresent() && !isBeforeWithinPrecision(currentVersion.get(), newVersionTimestamp))
       throw new VersionMismatchException("Detected clock running backwards during save", newVersionTimestamp.toString(),
           currentVersion.get().toString());
 
     // perform save
-    Collection saved = modelMapper.map(repository.save(modelMapper.map(collection, CollectionEntity.class)), Collection.class);
+    Collection saved = modelMapper.map(repository.save(modelMapper.map(collection, CollectionEntity.class)),
+        Collection.class);
 
     // Verify version after save, so we don't have to specify isolation SERIALIZABLE
     Instant mostRecentVersionAfterSave = repository.findCurrentVersion(collection.getId()).orElseThrow(
@@ -99,6 +102,22 @@ public class JPACollectionService implements CollectionService {
           mostRecentVersionAfterSave.toString());
 
     return saved;
+  }
+
+  private boolean isBeforeWithinPrecision(Instant time1, Instant time2) {
+    return time1.truncatedTo(config.getTimestampResolution()).isBefore(
+        time2.truncatedTo(config.getTimestampResolution()));
+  }
+
+  private boolean equalsWithinPrecision(Instant time1, Instant time2) {
+    return time1.truncatedTo(config.getTimestampResolution()).equals(
+        time2.truncatedTo(config.getTimestampResolution()));
+  }
+
+  private Optional<CollectionEntity> findByIdAndVersionTimestamp(String id, Instant versionTimestamp) {
+    Instant start = versionTimestamp.truncatedTo(config.getTimestampResolution());
+    Instant end = start.plus(Duration.of(1, config.getTimestampResolution()));
+    return repository.findByIdAndVersionTimestampBetween(id, start, end);
   }
 
 }
