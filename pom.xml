@@ -281,6 +281,51 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>pl.project13.maven</groupId>
+        <artifactId>git-commit-id-plugin</artifactId>
+        <version>4.0.0</version>
+        <executions>
+          <execution>
+            <id>get-the-git-infos</id>
+            <goals>
+              <goal>revision</goal>
+            </goals>
+            <phase>initialize</phase>
+          </execution>
+        </executions>
+        <configuration>
+          <generateGitPropertiesFile>true</generateGitPropertiesFile>
+          <generateGitPropertiesFilename>${project.build.outputDirectory}/META-INF/git.properties</generateGitPropertiesFilename>
+          <commitIdGenerationMode>full</commitIdGenerationMode>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <archive>
+            <manifestEntries>
+              <Build-Number>${git.build.number}</Build-Number>
+              <Build-Timestamp>${git.build.time}</Build-Timestamp>
+
+              <Git-Hash>${git.commit.id.full}</Git-Hash>
+              <Git-Tags>${git.tags}</Git-Tags>
+
+              <Specification-Title>${specification.title}</Specification-Title>
+              <Specification-Vendor>${project.organization.name}</Specification-Vendor>
+              <Specification-Version>${specification.version}</Specification-Version>
+
+              <Implementation-Title>${project.groupId}</Implementation-Title>
+              <Implementation-Version>${git.build.version}</Implementation-Version>
+              <Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
+              <Implementation-URL>${project.organization.url}</Implementation-URL>
+              <Implementation-Artifact>${project.artifactId}</Implementation-Artifact>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 
