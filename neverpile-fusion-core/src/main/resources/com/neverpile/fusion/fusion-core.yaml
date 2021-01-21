@@ -622,6 +622,24 @@ components:
                           minimum: 0
                       annotationData:
                         $ref: "#/components/schemas/AnnotationData"
+                      renderSettingsData:
+                        type: object
+                        nullable: true
+                        description: Render settings data for the page Sequence.
+                        properties:
+                          pageRenderSettingsData:
+                            type: array
+                            description: Render settings data per page.
+                            items:
+                              type: object
+                              description: Render settings data for a single page.
+                              properties:
+                                pageIndex:
+                                  description: Index of the annotated Page in the Sequence.
+                                  type: number
+                                serializedPageRenderSettings:
+                                  description: Serialized Render Inormation.
+                                  type: string
     AnnotationData:
       description: Annotations are markings, textual notes or other forms of supplementary information added to a
         paged document that can be applied by a user without changing the underlying document information. Anotations

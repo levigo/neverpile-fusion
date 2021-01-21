@@ -44,6 +44,11 @@ public class CompositePaged extends Specification {
      */
     private JsonNode annotationData;
 
+    /**
+     * Render settings data on a per-page-sequence basis.
+     */
+    private JsonNode renderSettingsData;
+
     public MediaType getMediaType() {
       return mediaType;
     }
@@ -74,6 +79,14 @@ public class CompositePaged extends Specification {
 
     public void setAnnotationData(final JsonNode annotationData) {
       this.annotationData = annotationData;
+    }
+
+    public JsonNode getRenderSettingsData() {
+      return renderSettingsData;
+    }
+
+    public void setRenderSettingsData(final JsonNode renderSettingsData) {
+      this.renderSettingsData = renderSettingsData;
     }
   }
 
