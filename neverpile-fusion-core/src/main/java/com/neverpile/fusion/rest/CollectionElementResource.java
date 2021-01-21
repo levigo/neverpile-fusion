@@ -81,7 +81,7 @@ public class CollectionElementResource {
     if (!collectionAuthorizationService.authorizeCollectionAction(collection, CoreActions.UPDATE))
       throw new PermissionDeniedException();
 
-    Collection saved = doSave(collection);
+    Collection saved = doSave(collection, principal);
 
     Element created = saved.getElements().stream().filter(
         e -> element.getId().equals(e.getId())).findFirst().orElseThrow();
@@ -91,8 +91,10 @@ public class CollectionElementResource {
         .body(created);
   }
 
-  private Collection doSave(final Collection collection) {
+  private Collection doSave(final Collection collection, Principal principal) {
     collection.setDateModified(Instant.now());
+    collection.setCreatedBy(principal.getName());
+
     return collectionService.save(collection);
   }
 
@@ -144,7 +146,7 @@ public class CollectionElementResource {
     if (!collectionAuthorizationService.authorizeCollectionAction(collection, CoreActions.UPDATE))
       throw new PermissionDeniedException();
 
-    Element updated = doSave(collection).getElements().stream().filter(
+    Element updated = doSave(collection, principal).getElements().stream().filter(
         e -> element.getId().equals(e.getId())).findFirst().orElseThrow();
 
     return ResponseEntity.ok() //

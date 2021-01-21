@@ -114,9 +114,7 @@ public class CollectionResource {
     } else
       collection.setId(idGenerationStrategy.creatcollectionId());
 
-    collection.setCreatedBy(principal.getName());
-
-    beforeSave(collection);
+    beforeSave(collection, principal);
 
     if (!collectionAuthorizationService.authorizeCollectionAction(collection, CoreActions.CREATE))
       throw new PermissionDeniedException();
@@ -128,7 +126,7 @@ public class CollectionResource {
         .body(saved);
   }
 
-  private void beforeSave(final Collection collection) {
+  private void beforeSave(final Collection collection, Principal principal) {
     // validate collection
     if(collection.getTypeId() == null)
       throw new NotAcceptableException("Type id is missing");
@@ -158,6 +156,9 @@ public class CollectionResource {
       if (null == e.getDateModified())
         e.setDateModified(now);
     });
+    
+    // set created by
+    collection.setCreatedBy(principal.getName());
   }
 
   @PreSignedUrlEnabled
@@ -167,7 +168,7 @@ public class CollectionResource {
   }, value = "fusion.collection.save")
   @ResponseStatus(HttpStatus.CREATED)
   public Collection createOrUpdate(@PathVariable("collectionID") final String collectionId,
-      @RequestBody final Collection collection) {
+      @RequestBody final Collection collection, final Principal principal) {
     // collection id in JSON must match the one in the path or be null
     if (collection.getId() != null) {
       if (!Objects.equals(collectionId, collection.getId()))
@@ -177,7 +178,7 @@ public class CollectionResource {
 
     Optional<Collection> existing = collectionService.getCurrent(collectionId);
 
-    beforeSave(collection);
+    beforeSave(collection, principal);
 
     if (!collectionAuthorizationService.authorizeCollectionAction(collection, existing.isPresent() ? CoreActions.UPDATE : CoreActions.CREATE))
       throw new PermissionDeniedException();
