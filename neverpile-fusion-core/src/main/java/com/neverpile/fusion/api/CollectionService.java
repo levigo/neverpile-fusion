@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import com.neverpile.fusion.api.exception.VersionMismatchException;
 import com.neverpile.fusion.model.Collection;
+import com.neverpile.fusion.model.VersionMetadata;
 
 /**
  * A CollectionService is used to access a set (repository, database etc.) of collections.
@@ -37,6 +38,14 @@ public interface CollectionService {
    * @return the list of version timestamps or the empty list, if the collection does not exist
    */
   List<Instant> getVersions(String id);
+
+  /**
+   * Get the version metadata of all versions of the collection with the given id.
+   * 
+   * @param id the collection's id
+   * @return the list of version metadata or the empty list, if the collection does not exist
+   */
+  List<VersionMetadata> getVersionsWithMetadata(String id);
 
   /**
    * Save a new collection or a new version thereof. Implementations must guard against lost updates

@@ -6,6 +6,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,9 +19,11 @@ import com.neverpile.fusion.api.exception.VersionMismatchException;
 import com.neverpile.fusion.api.exception.VersionNotFoundException;
 import com.neverpile.fusion.jpa.JPAConfiguration;
 import com.neverpile.fusion.model.Collection;
+import com.neverpile.fusion.model.VersionMetadata;
 
 /**
- * An implementation of {@link CollectionService} which persists collections to a SQL database via JPA.
+ * An implementation of {@link CollectionService} which persists collections to a SQL database via
+ * JPA.
  */
 @Component
 public class JPACollectionService implements CollectionService {
@@ -52,6 +55,13 @@ public class JPACollectionService implements CollectionService {
   @Override
   public List<Instant> getVersions(final String id) {
     return repository.findVersions(id);
+  }
+
+  @Override
+  public List<VersionMetadata> getVersionsWithMetadata(final String id) {
+    return repository.findVersionsWithMetadata(id).stream().map(
+        e -> new VersionMetadata(e.getVersionTimestamp(), e.getTypeId(), e.getCreatedBy())).collect(
+            Collectors.toList());
   }
 
   @Override
@@ -104,17 +114,17 @@ public class JPACollectionService implements CollectionService {
     return saved;
   }
 
-  private boolean isBeforeWithinPrecision(Instant time1, Instant time2) {
+  private boolean isBeforeWithinPrecision(final Instant time1, final Instant time2) {
     return time1.truncatedTo(config.getTimestampResolution()).isBefore(
         time2.truncatedTo(config.getTimestampResolution()));
   }
 
-  private boolean equalsWithinPrecision(Instant time1, Instant time2) {
+  private boolean equalsWithinPrecision(final Instant time1, final Instant time2) {
     return time1.truncatedTo(config.getTimestampResolution()).equals(
         time2.truncatedTo(config.getTimestampResolution()));
   }
 
-  private Optional<CollectionEntity> findByIdAndVersionTimestamp(String id, Instant versionTimestamp) {
+  private Optional<CollectionEntity> findByIdAndVersionTimestamp(final String id, final Instant versionTimestamp) {
     Instant start = versionTimestamp.truncatedTo(config.getTimestampResolution());
     Instant end = start.plus(Duration.of(1, config.getTimestampResolution()));
     return repository.findByIdAndVersionTimestampBetween(id, start, end);

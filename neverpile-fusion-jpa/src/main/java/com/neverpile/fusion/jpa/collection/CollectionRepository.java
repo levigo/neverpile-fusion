@@ -21,6 +21,9 @@ public interface CollectionRepository extends CrudRepository<CollectionEntity, I
 
   @Query("select f.versionTimestamp from CollectionEntity f where f.id = ?1 order by versionTimestamp asc")
   List<Instant> findVersions(String id);
+  
+  @Query("select f.versionTimestamp as versionTimestamp, f.typeId as typeId, f.createdBy as createdBy from CollectionEntity f where f.id = ?1 order by versionTimestamp asc")
+  List<VersionMetadataProjection> findVersionsWithMetadata(String id);
 
   @Query("select max(m.versionTimestamp) from CollectionEntity m where m.id = ?1 group by m.id")
   Optional<Instant> findCurrentVersion(String id);
