@@ -31,6 +31,7 @@ import com.neverpile.fusion.api.CollectionTypeService;
 import com.neverpile.fusion.api.exception.PermissionDeniedException;
 import com.neverpile.fusion.authorization.CollectionAuthorizationService;
 import com.neverpile.fusion.model.Collection;
+import com.neverpile.fusion.model.VersionMetadata;
 import com.neverpile.fusion.rest.exception.NotAcceptableException;
 import com.neverpile.fusion.rest.exception.NotFoundException;
 import com.neverpile.urlcrypto.PreSignedUrlEnabled;
@@ -102,6 +103,18 @@ public class CollectionResource {
   }
 
   @PreSignedUrlEnabled
+  @GetMapping(value = "{collectionID}/historyWithMetadata")
+  @Timed(description = "get history with metadata", extraTags = {
+      "operation", "retrieve", "target", "collection-version-list"
+  }, value = "fusion.collection.get-version-list-with-metadata")
+  public List<VersionMetadata> getVersionListWithMetadata(@PathVariable("collectionID") final String collectionId) {
+    if (!collectionAuthorizationService.authorizeCollectionAction(getCurrent(collectionId), CoreActions.GET))
+      throw new PermissionDeniedException();
+    
+    return collectionService.getVersionsWithMetadata(collectionId);
+  }
+
+  @PreSignedUrlEnabled
   @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
   @Timed(description = "save collection", extraTags = {
       "operation", "store", "target", "collection"
@@ -126,7 +139,7 @@ public class CollectionResource {
         .body(saved);
   }
 
-  private void beforeSave(final Collection collection, Principal principal) {
+  private void beforeSave(final Collection collection, final Principal principal) {
     // validate collection
     if(collection.getTypeId() == null)
       throw new NotAcceptableException("Type id is missing");
