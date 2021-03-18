@@ -27,7 +27,7 @@
 
     <jmockit.version>1.31</jmockit.version>
 
-    <elasticsearch.version>6.6.2</elasticsearch.version>
+    <elasticsearch.version>7.11.2</elasticsearch.version>
     <ignite.version>2.5.0</ignite.version>
 
     <guava.version>25.0-jre</guava.version>
