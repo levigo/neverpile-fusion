@@ -30,7 +30,7 @@
     <elasticsearch.version>6.6.2</elasticsearch.version>
     <ignite.version>2.5.0</ignite.version>
 
-    <guava.version>25.0-jre</guava.version>
+    <guava.version>29.0-jre</guava.version>
   </properties>
 
   <repositories>
