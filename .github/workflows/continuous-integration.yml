@@ -34,13 +34,13 @@ jobs:
     - name: Perform build
       run: mvn verify
 
-    ## Notify Slack
-    - name: Notify slack
+    - name: Notify MM about new build
       uses: hennejg/slack-build-notifier@v1.1
       with:
         username: GitHub
         icon_emoji: octocat
+        channel: 'neverpile-ci'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        SLACK_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
       if: always()
