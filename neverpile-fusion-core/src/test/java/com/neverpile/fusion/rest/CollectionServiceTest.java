@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.any;
 
 import java.time.Instant;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.hamcrest.Matchers;
@@ -31,6 +32,8 @@ import com.neverpile.fusion.api.CollectionService;
 import com.neverpile.fusion.api.CollectionTypeService;
 import com.neverpile.fusion.model.Collection;
 import com.neverpile.fusion.model.CollectionType;
+import com.neverpile.fusion.model.Element;
+import com.neverpile.fusion.model.spec.Artifact;
 
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -64,6 +67,7 @@ public class CollectionServiceTest extends AbstractRestAssuredTest {
     BDDMockito.when(idGenerationStrategy.creatcollectionId()).thenAnswer(
         (i) -> "TheAnswerIs" + docIdGenerator.getAndIncrement());
     BDDMockito.when(idGenerationStrategy.validateCollectionId(any())).thenReturn(true);
+    BDDMockito.when(idGenerationStrategy.validateElementId(any())).thenReturn(true);
     BDDMockito.when(mockCollectionTypeService.get(any())).thenReturn(Optional.of(new CollectionType()));
   }
 
@@ -242,6 +246,83 @@ public class CollectionServiceTest extends AbstractRestAssuredTest {
     
     assertThat(resCollection.getId()).isEqualTo(F);
     assertThat(resCollection.getVersionTimestamp()).isBetween(then, Instant.now());
+    // @formatter:on
+  }
+  
+  @Test
+  public void testThat_collectionUpdateUpdatesElementTimestamps() throws Exception {
+    // @formatter:off
+    ArgumentCaptor<Collection> storedCollectionC = ArgumentCaptor.forClass(Collection.class);
+    
+    Instant initialTimestamp = Instant.now();
+    
+    Collection initialState = createTestCollection();
+    Artifact a1 = new Artifact();
+    a1.setContentURI("foo:bar");
+    Element e1 = new Element();
+    e1.setId(UUID.randomUUID().toString());
+    e1.setDateCreated(initialTimestamp);
+    e1.setDateModified(initialTimestamp);
+    e1.setMetadata(objectMapper.createObjectNode());
+    e1.setSpecification(a1);
+    
+    Artifact a2 = new Artifact();
+    a2.setContentURI("bar:baz");
+    Element e2 = new Element();
+    e2.setId(UUID.randomUUID().toString());
+    e2.setDateCreated(initialTimestamp);
+    e2.setDateModified(initialTimestamp);
+    e2.setMetadata(objectMapper.createObjectNode());
+    e2.setSpecification(a2);
+    
+    initialState.getElements().add(e1);
+    initialState.getElements().add(e2);
+    
+    BDDMockito
+      .given(mockCollectionService.getCurrent(F))
+      .willAnswer((a) -> { 
+        initialState.setId(F);
+        return Optional.of(initialState);
+      });
+    
+    BDDMockito
+      .given(mockCollectionService.save(storedCollectionC.capture()))
+      .willAnswer(i -> { 
+        Collection collection = i.getArgument(0);
+        collection.setVersionTimestamp(initialTimestamp);
+        return collection; 
+      });
+    
+    Collection modifiedState = createTestCollection();
+    Artifact a3 = new Artifact(); // identical to a2 except for...
+    a3.setContentURI("bar:baz2"); // ...a modification!
+    Element e3 = new Element();
+    e3.setId(e2.getId());
+    e3.setDateCreated(initialTimestamp);
+    e2.setDateModified(initialTimestamp); // server must update!
+    e3.setMetadata(objectMapper.createObjectNode());
+    e3.setSpecification(a3);
+    
+    modifiedState.getElements().add(e1);
+    modifiedState.getElements().add(e3);
+    
+    Thread.sleep(10);
+    
+    // store collection
+    Collection resCollection = RestAssured.given()
+        .accept(ContentType.JSON)
+        .body(modifiedState).contentType(ContentType.JSON)
+        .auth().preemptive().basic("user", "password")
+      .when()
+        .log().all()
+        .put("/api/v1/collections/{id}", F)
+      .then()
+        .statusCode(201)
+        .contentType(ContentType.JSON)
+        .extract().as(Collection.class);
+    
+    assertThat(resCollection.getElements().get(0).getDateModified()).isEqualTo(initialTimestamp);
+    assertThat(resCollection.getElements().get(1).getDateModified()).isAfter(initialTimestamp);
     // @formatter:on
   }
 
