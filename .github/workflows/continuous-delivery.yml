@@ -96,12 +96,14 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}    
         
     ## Notify Slack
-    - name: Notify slack
+    - name: Notify MM about new release
       uses: hennejg/slack-build-notifier@v1.1
       with:
         username: GitHub
         icon_emoji: octocat
-        text: Released new version `${{ steps.semanticversion.outputs.new_version }}` of *${{ github.repository }}* to ${{ secrets.REPOSITORY_URL }}
+        channel: 'neverpile-ci'
+        text: Released new version `${{ steps.semanticversion.outputs.new_version }}` of *${{ github.repository }}* to neverpile maven
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        SLACK_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
+      if: always()        
