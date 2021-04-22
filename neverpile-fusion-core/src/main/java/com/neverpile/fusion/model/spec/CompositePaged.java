@@ -1,7 +1,9 @@
 package com.neverpile.fusion.model.spec;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.http.MediaType;
 
@@ -40,6 +42,7 @@ public class CompositePaged extends Specification {
 
     /**
      * Annnotation data pertaining to a single part document.
+     * 
      * @see CompositePaged#annotationData
      */
     private JsonNode annotationData;
@@ -88,6 +91,34 @@ public class CompositePaged extends Specification {
     public void setRenderSettingsData(final JsonNode renderSettingsData) {
       this.renderSettingsData = renderSettingsData;
     }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+      result = prime * result + ((annotationData == null) ? 0 : annotationData.hashCode());
+      result = prime * result + ((contentURI == null) ? 0 : contentURI.hashCode());
+      result = prime * result + ((mediaType == null) ? 0 : mediaType.hashCode());
+      result = prime * result + Arrays.hashCode(pageIndices);
+      result = prime * result + ((renderSettingsData == null) ? 0 : renderSettingsData.hashCode());
+      return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj)
+        return true;
+      if (obj == null)
+        return false;
+      if (getClass() != obj.getClass())
+        return false;
+      PageSequence other = (PageSequence) obj;
+      return Objects.equals(annotationData, other.annotationData) //
+          && Objects.equals(contentURI, other.contentURI) //
+          && Objects.equals(mediaType, other.mediaType) //
+          && Arrays.equals(pageIndices, other.pageIndices) //
+          && Objects.equals(renderSettingsData, other.renderSettingsData);
+    }
   }
 
   private List<PageSequence> pageSequences = new ArrayList<>();
@@ -117,5 +148,27 @@ public class CompositePaged extends Specification {
 
   public void setAnnotationData(final JsonNode annotationData) {
     this.annotationData = annotationData;
+  }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((annotationData == null) ? 0 : annotationData.hashCode());
+    result = prime * result + ((pageSequences == null) ? 0 : pageSequences.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    CompositePaged other = (CompositePaged) obj;
+    return Objects.equals(annotationData, other.annotationData) //
+        && Objects.equals(pageSequences, other.pageSequences);
   }
 }
