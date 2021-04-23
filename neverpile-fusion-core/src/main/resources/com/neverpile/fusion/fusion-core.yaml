@@ -258,7 +258,7 @@ paths:
       - Collection
       - History
       summary: Get the list of versions of a collection by ID. The result
-        is a list ov version timestamps.
+        is a list of version timestamps.
       
       parameters:
       - name: collectionID
@@ -277,6 +277,43 @@ paths:
                 items:
                   type: string
                   format: date-time
+        400:
+          description: Invalid collectionID supplied
+        404:
+          description: Collection not found
+
+  /api/v1/collections/{collectionID}/historyWithMetadata:
+    get:
+      tags:
+      - Collection
+      - History
+      summary: Get the list of versions of a collection by ID. The result
+        is a list of version timestamps along with creator and type information
+      
+      parameters:
+      - name: collectionID
+        in: path
+        description: The ID of the collection for which to return the history
+        schema:
+          type: string
+        required: true
+      - name: groupRelatedVersions
+        in: query
+        description: whether to group related successive versions. The grouping
+          algorithm is up to the server implementation but will, in general group
+          only versions by the same creator with the same type.
+        schema:
+          type: boolean
+        allowEmptyValue: true
+      responses:
+        200:
+          description: Collection history found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VersionMetadata'
         400:
           description: Invalid collectionID supplied
         404:
@@ -640,6 +677,24 @@ components:
                                 serializedPageRenderSettings:
                                   description: Serialized Render Inormation.
                                   type: string
+    VersionMetadata:
+      description: Metadata for one or more collection versions.
+      properties:
+        versionTimestamps:
+          description: A list of version timestamps for which the metadata
+            is applicable. Ungrouped results will have just one entry, grouped
+            ones may have more than one.
+          type: array
+          items: 
+            type: string
+            format: date-time
+          minItems: 1
+        typeId:
+          type: string
+          description: The collections type's id. The type id references a `CollectionType` via its unique id.
+        createdBy:
+          type: string
+          description: The user who created this particular version of the collection.
     AnnotationData:
       description: Annotations are markings, textual notes or other forms of supplementary information added to a
         paged document that can be applied by a user without changing the underlying document information. Anotations

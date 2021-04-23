@@ -7,6 +7,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +31,7 @@ import com.neverpile.fusion.api.CollectionService;
 import com.neverpile.fusion.api.exception.NeverpileException;
 import com.neverpile.fusion.api.exception.VersionMismatchException;
 import com.neverpile.fusion.model.Collection;
+import com.neverpile.fusion.model.VersionMetadata;
 
 /**
  * An implementation of {@link CollectionService} which persists collections to neverpile eureka
@@ -88,7 +90,7 @@ public class EurekaCollectionService implements CollectionService {
       ContentElementResponse contentElement = client.documentService().queryContent(id, versionTimestamp).withRole(
           COLLECTION_ROLE_NAME).getOnly();
       Collection collection = objectMapper.readValue(contentElement.getContent(), Collection.class);
-      
+
       // the version timestamp isn't persisted but derived from the eureka version
       collection.setVersionTimestamp(contentElement.getVersionTimestamp());
 
@@ -107,6 +109,16 @@ public class EurekaCollectionService implements CollectionService {
   @Override
   public List<Instant> getVersions(final String id) {
     return client.documentService().getVersions(id);
+  }
+
+  @Override
+  public List<VersionMetadata> getVersionsWithMetadata(final String id) {
+    return getVersions(id).stream() 
+        // retrieve metadata for all versions - this is going to be slow...
+        .map(ts -> getVersion(id, ts) //
+            .map(v -> new VersionMetadata(v.getVersionTimestamp(), v.getTypeId(), v.getCreatedBy())).orElse(null)) //
+        .filter(Objects::nonNull) //
+        .collect(Collectors.toList());
   }
 
   @Override

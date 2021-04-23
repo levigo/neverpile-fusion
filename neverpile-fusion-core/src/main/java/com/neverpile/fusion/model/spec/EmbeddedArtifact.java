@@ -1,5 +1,7 @@
 package com.neverpile.fusion.model.spec;
 
+import java.util.Objects;
+
 import org.springframework.http.MediaType;
 
 /**
@@ -34,5 +36,27 @@ public class EmbeddedArtifact extends Specification {
 
   public void setContent(final String content) {
     this.content = content;
+  }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((content == null) ? 0 : content.hashCode());
+    result = prime * result + ((mediaType == null) ? 0 : mediaType.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    EmbeddedArtifact other = (EmbeddedArtifact) obj;
+    return Objects.equals(content, other.content) //
+        && Objects.equals(mediaType, other.mediaType);
   }
 }
