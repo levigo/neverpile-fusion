@@ -19,20 +19,11 @@ jobs:
 
     - name: Bump version and push tag
       id: semanticversion
-      uses: hennejg/github-tag-action@v4.3.0
+      uses: hennejg/github-tag-action@v4.3.1
       with:
         release_branches: master
         github_token: ${{ secrets.GITHUB_TOKEN }}
         
-    - name: Verify and print new build number
-      run: |
-        if echo '${{ steps.semanticversion.outputs.new_tag }}' |grep -Eq '^v[0-9]+[.][0-9]+[.][0-9]+$'; then 
-          echo Tag '${{ steps.semanticversion.outputs.new_tag }}', New version '${{ steps.semanticversion.outputs.new_version }}', Changelog '${{ steps.semanticversion.outputs.changelog }}'
-        else
-          echo 'unexpected tag format - aborting'
-          exit -1
-        fi
-
     ## Enable Caching
     - uses: actions/cache@v1
       with:
