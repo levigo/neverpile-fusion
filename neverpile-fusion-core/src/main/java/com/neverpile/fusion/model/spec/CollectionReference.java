@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 /**
  * A reference to another collection within the same system.
  */
-@JsonTypeName("artifact")
+@JsonTypeName("collectionReference")
 public class CollectionReference extends Specification {
   /**
    * The id of the referenced collection.
