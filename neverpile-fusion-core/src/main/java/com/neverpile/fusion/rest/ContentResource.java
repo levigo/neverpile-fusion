@@ -10,15 +10,13 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.neverpile.common.util.MultiPartOutputStream;
 import com.neverpile.fusion.api.ContentLoader;
-
-import de.nuernberger.caa.io.MultiPartOutputStream;
 
 @RestController()
 @RequestMapping(path = "/content",
@@ -33,7 +31,9 @@ public class ContentResource {
     this.loaders = loaders;
   }
 
-  @PostMapping(path = "stream", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.TEXT_PLAIN_VALUE)
+  @PostMapping(path = "stream",
+      produces = MediaType.APPLICATION_JSON_VALUE,
+      consumes = MediaType.TEXT_PLAIN_VALUE)
   public void get(HttpServletResponse response, @RequestBody String uri) throws IOException {
     URI properURI = URI.create(URLDecoder.decode(uri, StandardCharsets.UTF_8.toString()));
 
