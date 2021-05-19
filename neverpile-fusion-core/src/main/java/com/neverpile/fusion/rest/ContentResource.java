@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.neverpile.common.util.MultiPartOutputStream;
 import com.neverpile.fusion.api.ContentLoader;
+import com.neverpile.fusion.rest.exception.NotFoundException;
 
 @RestController()
 @RequestMapping(path = "/content",
@@ -40,7 +41,7 @@ public class ContentResource {
     ContentLoader loader = loaders.stream() //
         .filter(l -> l.canRead(properURI)) //
         .findFirst() //
-        .orElseThrow(() -> new IOException("Unsupported URI: " + properURI));
+        .orElseThrow(() -> new NotFoundException("Unsupported URI: " + properURI));
 
     final MultiPartOutputStream mos = new MultiPartOutputStream(response.getOutputStream());
 
