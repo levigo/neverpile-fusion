@@ -9,8 +9,10 @@ import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -19,7 +21,8 @@ import com.neverpile.fusion.api.ContentLoader;
 import de.nuernberger.caa.io.MultiPartOutputStream;
 
 @RestController()
-@RequestMapping(path = "/content", produces = "multipart/mixed")
+@RequestMapping(path = "/content",
+    produces = "multipart/mixed")
 public class ContentResource {
 
   private final List<ContentLoader> loaders;
@@ -30,8 +33,8 @@ public class ContentResource {
     this.loaders = loaders;
   }
 
-  @GetMapping("get/{uri}")
-  public void get(HttpServletResponse response, @PathVariable String uri) throws IOException {
+  @PostMapping(path = "stream", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.TEXT_PLAIN_VALUE)
+  public void get(HttpServletResponse response, @RequestBody String uri) throws IOException {
     URI properURI = URI.create(URLDecoder.decode(uri, StandardCharsets.UTF_8.toString()));
 
     ContentLoader loader = loaders.stream() //
