@@ -281,17 +281,18 @@ public class CollectionResource {
       @RequestBody final Collection collection, final Principal principal, @RequestHeader(
           name = LockService.LOCK_TOKEN_HEADER,
           required = false) String lockToken) {
-    LockRequestResult result = performLocking(collectionId, principal, lockToken);
+    // collection id in JSON must match the one in the path or be null
+    if (collection.getId() != null) {
+      if (!Objects.equals(collectionId, collection.getId()))
+        throw new NotAcceptableException("Collection id mismatch: " + collection.getId());
+    } else
+      collection.setId(collectionId);
+
+    Optional<Collection> existing = collectionService.getCurrent(collectionId);
+
+    // lock, but only on updates
+    LockRequestResult result = existing.isPresent() ? performLocking(collectionId, principal, lockToken) : null;
     try {
-      // collection id in JSON must match the one in the path or be null
-      if (collection.getId() != null) {
-        if (!Objects.equals(collectionId, collection.getId()))
-          throw new NotAcceptableException("Collection id mismatch: " + collection.getId());
-      } else
-        collection.setId(collectionId);
-
-      Optional<Collection> existing = collectionService.getCurrent(collectionId);
-
       beforeSave(collection, principal, existing);
 
       if (!collectionAuthorizationService.authorizeCollectionAction(collection,

@@ -27,9 +27,14 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.neverpile.common.locking.LockService;
+import com.neverpile.common.locking.LockService.LockRequestResult;
+import com.neverpile.common.locking.LockService.LockState;
 import com.neverpile.fusion.api.CollectionIdStrategy;
 import com.neverpile.fusion.api.CollectionService;
 import com.neverpile.fusion.api.CollectionTypeService;
+import com.neverpile.fusion.configuration.ApplicationConfiguration;
+import com.neverpile.fusion.configuration.ApplicationConfiguration.Locking.Mode;
 import com.neverpile.fusion.model.Collection;
 import com.neverpile.fusion.model.CollectionType;
 import com.neverpile.fusion.model.Element;
@@ -57,9 +62,15 @@ public class CollectionServiceTest extends AbstractRestAssuredTest {
 
   @MockBean
   CollectionIdStrategy idGenerationStrategy;
+  
+  @MockBean
+  LockService mockLockService;
 
   @Autowired
   ObjectMapper objectMapper;
+  
+  @Autowired
+  ApplicationConfiguration config;
 
   @BeforeEach
   public void reset() {
@@ -69,6 +80,7 @@ public class CollectionServiceTest extends AbstractRestAssuredTest {
     BDDMockito.when(idGenerationStrategy.validateCollectionId(any())).thenReturn(true);
     BDDMockito.when(idGenerationStrategy.validateElementId(any())).thenReturn(true);
     BDDMockito.when(mockCollectionTypeService.get(any())).thenReturn(Optional.of(new CollectionType()));
+    config.getLocking().setMode(Mode.OPTIMISTIC);
   }
 
   @Test
@@ -158,6 +170,37 @@ public class CollectionServiceTest extends AbstractRestAssuredTest {
     // @formatter:on
   }
   
+  @Test
+  public void testThat_collectionCanBeCreatedWithoutLock() throws Exception {
+    // @formatter:off
+    ArgumentCaptor<Collection> storedCollectionC = ArgumentCaptor.forClass(Collection.class);
+    
+    BDDMockito
+    .given(mockCollectionService.save(storedCollectionC.capture()))
+    .willAnswer(i -> { 
+      Collection collection = i.getArgument(0);
+      collection.setVersionTimestamp(Instant.now());
+      collection.setDateCreated(Instant.now());
+      collection.setDateModified(Instant.now());
+      return collection; 
+    });
+    
+    config.getLocking().setMode(Mode.EXPLICIT);
+    
+    // store collection (must work despite not providing a token)
+    RestAssured.given()
+        .accept(ContentType.JSON)
+        .body(createTestCollection()).contentType(ContentType.JSON)
+        .auth().preemptive().basic("user", "password")
+      .when()
+        .log().all()
+        .put("/api/v1/collections/{id}", "iAmAProvidedId")
+      .then()
+        .log().all()
+        .statusCode(201);
+    // @formatter:on
+  }
+  
 
   @Test
   public void testThat_collectionCreationValidatesCollectionType() throws Exception {
@@ -214,20 +257,7 @@ public class CollectionServiceTest extends AbstractRestAssuredTest {
     // @formatter:off
     ArgumentCaptor<Collection> storedCollectionC = ArgumentCaptor.forClass(Collection.class);
     
-    BDDMockito
-      .given(mockCollectionService.getCurrent(F))
-      .willAnswer((a) -> { 
-        Collection f = createTestCollection();
-        f.setId(F);
-        return Optional.of(f);
-      });
-    BDDMockito
-      .given(mockCollectionService.save(storedCollectionC.capture()))
-      .willAnswer(i -> { 
-        Collection collection = i.getArgument(0);
-        collection.setVersionTimestamp(Instant.now());
-        return collection; 
-      });
+    defaultUpdateMockery(storedCollectionC);
     
     Instant then = Instant.now();
     
@@ -398,5 +428,153 @@ public class CollectionServiceTest extends AbstractRestAssuredTest {
     
     // verify returned document
     assertThat(returnedDoss.getId()).isEqualTo(F);
+  }
+
+  @Test
+  public void testThat_collectionUpdateRejectedWithoutTokenAndExplicitLocking() throws Exception {
+    // @formatter:off
+    defaultUpdateMockery(ArgumentCaptor.forClass(Collection.class));
+
+    config.getLocking().setMode(Mode.EXPLICIT);
+    
+    // store collection (expect failure due to no lock)
+    RestAssured.given()
+        .accept(ContentType.JSON)
+        .body(createTestCollection()).contentType(ContentType.JSON)
+        .auth().preemptive().basic("user", "password")
+      .when()
+        .log().all()
+        .put("/api/v1/collections/{id}", F)
+      .then()
+        .log().all()
+        .statusCode(423)
+        .body("message", equalTo("Required " + LockService.LOCK_TOKEN_HEADER + " header is missing"))
+        .contentType(ContentType.JSON);
+    // @formatter:on
+  }
+  
+  @Test
+  public void testThat_collectionUpdateAcceptedWithTokenAndExplicitLocking() throws Exception {
+    // @formatter:off
+    defaultUpdateMockery(ArgumentCaptor.forClass(Collection.class));
+
+    config.getLocking().setMode(Mode.EXPLICIT);
+
+    BDDMockito.given(mockLockService.verifyLock("neverpile:collection:" + F, "aToken")).willReturn(true);
+    
+    // store collection (expect success)
+    RestAssured.given()
+        .accept(ContentType.JSON)
+        .body(createTestCollection()).contentType(ContentType.JSON)
+        .header(LockService.LOCK_TOKEN_HEADER, "aToken")
+        .auth().preemptive().basic("user", "password")
+      .when()
+        .log().all()
+        .put("/api/v1/collections/{id}", F)
+      .then()
+        .statusCode(201)
+        .contentType(ContentType.JSON);
+
+    BDDMockito.verify(mockLockService).verifyLock("neverpile:collection:" + F, "aToken");
+    // @formatter:on
+  }
+  
+  @Test
+  public void testThat_collectionUpdateRejectedWithWrongTokenAndExplicitLocking() throws Exception {
+    // @formatter:off
+    defaultUpdateMockery(ArgumentCaptor.forClass(Collection.class));
+
+    config.getLocking().setMode(Mode.EXPLICIT);
+
+    BDDMockito.given(mockLockService.verifyLock("neverpile:collection:" + F, "aToken")).willReturn(true);
+    
+    // store collection (expect success)
+    RestAssured.given()
+        .accept(ContentType.JSON)
+        .body(createTestCollection()).contentType(ContentType.JSON)
+        .header(LockService.LOCK_TOKEN_HEADER, "aWrongToken")
+        .auth().preemptive().basic("user", "password")
+      .when()
+        .log().all()
+        .put("/api/v1/collections/{id}", F)
+      .then()
+        .log().all()
+        .statusCode(423)
+        .body("message", equalTo("Lock token is invalid or expired"))
+        .contentType(ContentType.JSON);
+    // @formatter:on
+  }
+  
+  @Test
+  public void testThat_collectionUpdateAcceptedWithTokenAndImplicitLocking() throws Exception {
+    // @formatter:off
+    defaultUpdateMockery(ArgumentCaptor.forClass(Collection.class));
+
+    config.getLocking().setMode(Mode.IMPLICIT);
+
+    BDDMockito
+      .given(mockLockService.tryAcquireLock("neverpile:collection:" + F, "user"))
+      .willReturn(new LockRequestResult(true, "aToken", new LockState("foo", Instant.now().plusSeconds(10))));
+    
+    // store collection (expect success)
+    RestAssured.given()
+        .accept(ContentType.JSON)
+        .body(createTestCollection()).contentType(ContentType.JSON)
+        .auth().preemptive().basic("user", "password")
+      .when()
+        .log().all()
+        .put("/api/v1/collections/{id}", F)
+      .then()
+        .statusCode(201)
+        .contentType(ContentType.JSON);
+    
+    BDDMockito
+      .verify(mockLockService).tryAcquireLock("neverpile:collection:" + F, "user");
+    BDDMockito
+      .verify(mockLockService).releaseLock("neverpile:collection:" + F, "aToken");
+    // @formatter:on
+  }
+  
+  @Test
+  public void testThat_collectionUpdateRejectedWithWrongTokenAndImplicitLocking() throws Exception {
+    // @formatter:off
+    defaultUpdateMockery(ArgumentCaptor.forClass(Collection.class));
+
+    config.getLocking().setMode(Mode.IMPLICIT);
+
+    BDDMockito.given(mockLockService.verifyLock("neverpile:collection:" + F, "aToken")).willReturn(true);
+    
+    // store collection (expect success)
+    RestAssured.given()
+        .accept(ContentType.JSON)
+        .body(createTestCollection()).contentType(ContentType.JSON)
+        .header(LockService.LOCK_TOKEN_HEADER, "aWrongToken")
+        .auth().preemptive().basic("user", "password")
+      .when()
+        .log().all()
+        .put("/api/v1/collections/{id}", F)
+      .then()
+        .log().all()
+        .statusCode(423)
+        .body("message", equalTo("Lock token is invalid or expired"))
+        .contentType(ContentType.JSON);
+    // @formatter:on
+  }
+  
+  private void defaultUpdateMockery(ArgumentCaptor<Collection> storedCollectionC) {
+    BDDMockito
+      .given(mockCollectionService.getCurrent(F))
+      .willAnswer((a) -> { 
+        Collection f = createTestCollection();
+        f.setId(F);
+        return Optional.of(f);
+      });
+    BDDMockito
+      .given(mockCollectionService.save(storedCollectionC.capture()))
+      .willAnswer(i -> { 
+        Collection collection = i.getArgument(0);
+        collection.setVersionTimestamp(Instant.now());
+        return collection; 
+      });
   }
 }

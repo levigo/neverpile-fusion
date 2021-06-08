@@ -15,13 +15,14 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 
 import com.neverpile.common.authorization.basic.AllowAllAuthorizationService;
 import com.neverpile.fusion.authorization.CollectionAuthorizationService;
+import com.neverpile.fusion.configuration.ApplicationConfiguration;
 
 @SpringBootConfiguration
 @EnableAutoConfiguration(exclude = {
     DataSourceAutoConfiguration.class, XADataSourceAutoConfiguration.class
 })
 @Import({
-    CollectionAuthorizationService.class, AllowAllAuthorizationService.class
+    CollectionAuthorizationService.class, AllowAllAuthorizationService.class, ApplicationConfiguration.class
 })
 public class BaseTestConfiguration {
   @EnableWebSecurity
