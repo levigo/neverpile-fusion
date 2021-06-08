@@ -84,7 +84,23 @@ public class CollectionResource {
           "operation", "retrieve", "target", "collection"
       },
       value = "fusion.collection.get")
-  public Collection getCurrent(@PathVariable("collectionID") final String collectionId) {
+  public ResponseEntity<Collection> getCurrent(@PathVariable("collectionID") final String collectionId) {
+    Collection collection = currentVersion(collectionId);
+
+    return ResponseEntity.ok() //
+        .header(LockService.LOCK_SCOPE_HEADER, createLockScope(collectionId)) //
+        .body(collection);
+  }
+
+  /**
+   * Return the current version of a collection.
+   * 
+   * @param collectionId the collection id
+   * @return the current version of the collection
+   * @throws NotFoundException if the collection does not exist
+   * @throws PermissionDeniedException if the access is denied
+   */
+  private Collection currentVersion(final String collectionId) {
     Collection collection = collectionService.getCurrent(collectionId).orElseThrow(
         () -> new NotFoundException("Collection not found"));
 
@@ -102,7 +118,7 @@ public class CollectionResource {
           "operation", "retrieve", "target", "collection"
       },
       value = "fusion.collection.get-version")
-  public Collection getVersion(@PathVariable("collectionID") final String collectionId,
+  public ResponseEntity<Collection> getVersion(@PathVariable("collectionID") final String collectionId,
       @PathVariable("versionTimestamp") @DateTimeFormat(
           iso = DateTimeFormat.ISO.DATE_TIME) final Instant versionTimestamp) {
     Collection collection = collectionService.getVersion(collectionId, versionTimestamp).orElseThrow(
@@ -111,7 +127,9 @@ public class CollectionResource {
     if (!collectionAuthorizationService.authorizeCollectionAction(collection, CoreActions.GET))
       throw new PermissionDeniedException();
 
-    return collection;
+    return ResponseEntity.ok() //
+        .header(LockService.LOCK_SCOPE_HEADER, createLockScope(collectionId)) //
+        .body(collection);
   }
 
   @PreSignedUrlEnabled
@@ -123,7 +141,7 @@ public class CollectionResource {
       },
       value = "fusion.collection.get-version-list")
   public List<Date> getVersionList(@PathVariable("collectionID") final String collectionId) {
-    if (!collectionAuthorizationService.authorizeCollectionAction(getCurrent(collectionId), CoreActions.GET))
+    if (!collectionAuthorizationService.authorizeCollectionAction(currentVersion(collectionId), CoreActions.GET))
       throw new PermissionDeniedException();
 
     return collectionService.getVersions(collectionId).stream().map(i -> Date.from(i)).collect(Collectors.toList());
@@ -141,7 +159,7 @@ public class CollectionResource {
       @RequestParam(
           name = "groupRelatedVersions",
           defaultValue = "false") final boolean groupRelatedVersions) {
-    if (!collectionAuthorizationService.authorizeCollectionAction(getCurrent(collectionId), CoreActions.GET))
+    if (!collectionAuthorizationService.authorizeCollectionAction(currentVersion(collectionId), CoreActions.GET))
       throw new PermissionDeniedException();
 
     List<VersionMetadata> versionsWithMetadata = collectionService.getVersionsWithMetadata(collectionId);
@@ -261,7 +279,7 @@ public class CollectionResource {
   @ResponseStatus(HttpStatus.CREATED)
   public Collection createOrUpdate(@PathVariable("collectionID") final String collectionId,
       @RequestBody final Collection collection, final Principal principal, @RequestHeader(
-          name = "X-Neverpile-Lock-Token",
+          name = LockService.LOCK_TOKEN_HEADER,
           required = false) String lockToken) {
     LockRequestResult result = performLocking(collectionId, principal, lockToken);
     try {
@@ -301,7 +319,7 @@ public class CollectionResource {
               "Resource is configured for explicit locking but no lock service is available");
         }
         if (null == lockToken) {
-          throw new LockedException("Required X-Neverpile-Lock-Token header is missing");
+          throw new LockedException("Required " + LockService.LOCK_TOKEN_HEADER + " header is missing");
         }
         if (!lockService.verifyLock(createLockScope(collectionId), lockToken)) {
           throw new LockedException("Lock token is invalid or expired");
