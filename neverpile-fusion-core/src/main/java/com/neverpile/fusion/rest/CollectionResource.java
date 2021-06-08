@@ -292,7 +292,7 @@ public class CollectionResource {
 
     // lock, but only on updates
     RequestScopedLock lock = existing.isPresent()
-        ? lockService.performLocking(createLockScope(collectionId), configuration.getLocking().getMode())
+        ? lockService.acquireLock(createLockScope(collectionId), configuration.getLocking().getMode())
         : () -> {
           // no need to unlock
         };
