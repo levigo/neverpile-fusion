@@ -30,7 +30,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.neverpile.common.authorization.api.CoreActions;
 import com.neverpile.common.locking.LockService;
-import com.neverpile.common.locking.LockService.LockRequestResult;
+import com.neverpile.common.locking.RequestLockingService;
+import com.neverpile.common.locking.RequestLockingService.RequestScopedLock;
 import com.neverpile.fusion.api.CollectionIdStrategy;
 import com.neverpile.fusion.api.CollectionService;
 import com.neverpile.fusion.api.CollectionTypeService;
@@ -69,9 +70,8 @@ public class CollectionResource {
   @Autowired
   private CollectionAuthorizationService collectionAuthorizationService;
 
-  @Autowired(
-      required = false)
-  private LockService lockService;
+  @Autowired
+  private RequestLockingService lockService;
 
   @Autowired
   private ApplicationConfiguration configuration;
@@ -291,7 +291,11 @@ public class CollectionResource {
     Optional<Collection> existing = collectionService.getCurrent(collectionId);
 
     // lock, but only on updates
-    LockRequestResult result = existing.isPresent() ? performLocking(collectionId, principal, lockToken) : null;
+    RequestScopedLock lock = existing.isPresent()
+        ? lockService.performLocking(createLockScope(collectionId), configuration.getLocking().getMode())
+        : () -> {
+          // no need to unlock
+        };
     try {
       beforeSave(collection, principal, existing);
 
@@ -301,56 +305,8 @@ public class CollectionResource {
 
       return collectionService.save(collection);
     } finally {
-      unlockOnImplicitLock(collectionId, result);
+      lock.releaseIfLocked();
     }
-  }
-
-  private void unlockOnImplicitLock(final String collectionId, LockRequestResult result) {
-    if (null != result && result.isSuccess()) {
-      lockService.releaseLock(createLockScope(collectionId), result.getToken());
-    }
-  }
-
-  private LockRequestResult performLocking(final String collectionId, final Principal principal, String lockToken) {
-    LockRequestResult result = null;
-    switch (configuration.getLocking().getMode()){
-      case EXPLICIT :
-        if (null == lockService) {
-          throw new UnsupportedOperationException(
-              "Resource is configured for explicit locking but no lock service is available");
-        }
-        if (null == lockToken) {
-          throw new LockedException("Required " + LockService.LOCK_TOKEN_HEADER + " header is missing");
-        }
-        if (!lockService.verifyLock(createLockScope(collectionId), lockToken)) {
-          throw new LockedException("Lock token is invalid or expired");
-        }
-        break;
-
-      case IMPLICIT :
-        if (null == lockService) {
-          throw new UnsupportedOperationException(
-              "Resource is configured for implicit locking but no lock service is available");
-        }
-        if (null != lockToken) {
-          // if a lock token is provided it must be valid
-          if (!lockService.verifyLock(createLockScope(collectionId), lockToken)) {
-            throw new LockedException("Lock token is invalid or expired");
-          }
-        } else {
-          result = lockService.tryAcquireLock(createLockScope(collectionId), principal.getName());
-          if (!result.isSuccess()) {
-            throw new LockedException("Failed to implicitly lock a resource");
-          }
-        }
-        break;
-
-      default :
-      case OPTIMISTIC :
-        // nothing to do
-        break;
-    }
-    return result;
   }
 
   private String createLockScope(final String collectionId) {

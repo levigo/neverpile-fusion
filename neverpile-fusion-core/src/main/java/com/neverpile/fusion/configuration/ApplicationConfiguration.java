@@ -4,7 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
-import com.neverpile.common.locking.LockService;
+import com.neverpile.common.locking.RequestLockingService.Mode;
 
 @Component
 @ConfigurationProperties("neverpile-fusion")
@@ -32,25 +32,6 @@ public class ApplicationConfiguration {
   }
 
   public static class Locking {
-    public enum Mode {
-      /**
-       * Resources do not actively participate in locking. Clients may perform cooperative locking
-       * using a {@link LockService} or other external means, but resources only preven lost updates
-       * using optimistic locking/versioning.
-       */
-      OPTIMISTIC,
-      /**
-       * Mutating calls to resources require a lock token via the
-       * <code>X-Neverpile-Lock-Token</code>-header, otherwise they are rejected.
-       */
-      EXPLICIT,
-      /**
-       * Mutating calls to resources without a lock token will cause resources to actively acquire a
-       * lock token on the client's behalf.
-       */
-      IMPLICIT
-    }
-
     /**
      * The locking mode to use. Default: {@link Mode#OPTIMISTIC}
      */

@@ -30,11 +30,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neverpile.common.locking.LockService;
 import com.neverpile.common.locking.LockService.LockRequestResult;
 import com.neverpile.common.locking.LockService.LockState;
+import com.neverpile.common.locking.RequestLockingService;
+import com.neverpile.common.locking.RequestLockingService.Mode;
 import com.neverpile.fusion.api.CollectionIdStrategy;
 import com.neverpile.fusion.api.CollectionService;
 import com.neverpile.fusion.api.CollectionTypeService;
 import com.neverpile.fusion.configuration.ApplicationConfiguration;
-import com.neverpile.fusion.configuration.ApplicationConfiguration.Locking.Mode;
 import com.neverpile.fusion.model.Collection;
 import com.neverpile.fusion.model.CollectionType;
 import com.neverpile.fusion.model.Element;
@@ -49,9 +50,8 @@ public class CollectionServiceTest extends AbstractRestAssuredTest {
   private static final String F = "aCollection";
 
   @TestConfiguration
-  @Import(CollectionResource.class)
+  @Import({CollectionResource.class, RequestLockingService.class})
   public static class ServiceConfig {
-
   }
 
   @MockBean
