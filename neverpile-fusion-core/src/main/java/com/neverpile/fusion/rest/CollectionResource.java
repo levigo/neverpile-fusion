@@ -22,17 +22,21 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.neverpile.common.authorization.api.CoreActions;
+import com.neverpile.common.locking.LockService;
+import com.neverpile.common.locking.LockService.LockRequestResult;
 import com.neverpile.fusion.api.CollectionIdStrategy;
 import com.neverpile.fusion.api.CollectionService;
 import com.neverpile.fusion.api.CollectionTypeService;
 import com.neverpile.fusion.api.exception.PermissionDeniedException;
 import com.neverpile.fusion.authorization.CollectionAuthorizationService;
+import com.neverpile.fusion.configuration.ApplicationConfiguration;
 import com.neverpile.fusion.model.Collection;
 import com.neverpile.fusion.model.VersionMetadata;
 import com.neverpile.fusion.rest.exception.NotAcceptableException;
@@ -65,9 +69,15 @@ public class CollectionResource {
   @Autowired
   private CollectionAuthorizationService collectionAuthorizationService;
 
+  @Autowired(
+      required = false)
+  private LockService lockService;
+
+  @Autowired
+  private ApplicationConfiguration configuration;
+
   @PreSignedUrlEnabled
-  @GetMapping(
-      value = "{collectionID}")
+  @GetMapping("{collectionID}")
   @Timed(
       description = "get collection (current version)",
       extraTags = {
@@ -85,8 +95,7 @@ public class CollectionResource {
   }
 
   @PreSignedUrlEnabled
-  @GetMapping(
-      value = "{collectionID}/history/{versionTimestamp}")
+  @GetMapping("{collectionID}/history/{versionTimestamp}")
   @Timed(
       description = "get collection (version specified by timestamp)",
       extraTags = {
@@ -106,8 +115,7 @@ public class CollectionResource {
   }
 
   @PreSignedUrlEnabled
-  @GetMapping(
-      value = "{collectionID}/history")
+  @GetMapping("{collectionID}/history")
   @Timed(
       description = "get version list",
       extraTags = {
@@ -122,8 +130,7 @@ public class CollectionResource {
   }
 
   @PreSignedUrlEnabled
-  @GetMapping(
-      value = "{collectionID}/historyWithMetadata")
+  @GetMapping("{collectionID}/historyWithMetadata")
   @Timed(
       description = "get history with metadata",
       extraTags = {
@@ -227,9 +234,9 @@ public class CollectionResource {
         e.setDateCreated(now);
 
       boolean isUpdate = existing // find element in existing collection
-          .flatMap(c -> c.getElements().stream().filter(xe -> Objects.equals(xe.getId(), e.getId())).findFirst()) 
+          .flatMap(c -> c.getElements().stream().filter(xe -> Objects.equals(xe.getId(), e.getId())).findFirst())
           // is it changed?
-          .map(xe -> !Objects.equals(xe, e)) 
+          .map(xe -> !Objects.equals(xe, e))
           // if there is no existing element, we assume unchanged
           .orElse(false);
 
@@ -253,22 +260,81 @@ public class CollectionResource {
       value = "fusion.collection.save")
   @ResponseStatus(HttpStatus.CREATED)
   public Collection createOrUpdate(@PathVariable("collectionID") final String collectionId,
-      @RequestBody final Collection collection, final Principal principal) {
-    // collection id in JSON must match the one in the path or be null
-    if (collection.getId() != null) {
-      if (!Objects.equals(collectionId, collection.getId()))
-        throw new NotAcceptableException("Collection id mismatch: " + collection.getId());
-    } else
-      collection.setId(collectionId);
+      @RequestBody final Collection collection, final Principal principal, @RequestHeader(
+          name = "X-Neverpile-Lock-Token",
+          required = false) String lockToken) {
+    LockRequestResult result = performLocking(collectionId, principal, lockToken);
+    try {
+      // collection id in JSON must match the one in the path or be null
+      if (collection.getId() != null) {
+        if (!Objects.equals(collectionId, collection.getId()))
+          throw new NotAcceptableException("Collection id mismatch: " + collection.getId());
+      } else
+        collection.setId(collectionId);
 
-    Optional<Collection> existing = collectionService.getCurrent(collectionId);
+      Optional<Collection> existing = collectionService.getCurrent(collectionId);
 
-    beforeSave(collection, principal, existing);
+      beforeSave(collection, principal, existing);
 
-    if (!collectionAuthorizationService.authorizeCollectionAction(collection,
-        existing.isPresent() ? CoreActions.UPDATE : CoreActions.CREATE))
-      throw new PermissionDeniedException();
+      if (!collectionAuthorizationService.authorizeCollectionAction(collection,
+          existing.isPresent() ? CoreActions.UPDATE : CoreActions.CREATE))
+        throw new PermissionDeniedException();
 
-    return collectionService.save(collection);
+      return collectionService.save(collection);
+    } finally {
+      unlockOnImplicitLock(collectionId, result);
+    }
+  }
+
+  private void unlockOnImplicitLock(final String collectionId, LockRequestResult result) {
+    if (null != result && result.isSuccess()) {
+      lockService.releaseLock(createLockScope(collectionId), result.getToken());
+    }
+  }
+
+  private LockRequestResult performLocking(final String collectionId, final Principal principal, String lockToken) {
+    LockRequestResult result = null;
+    switch (configuration.getLocking().getMode()){
+      case EXPLICIT :
+        if (null == lockService) {
+          throw new UnsupportedOperationException(
+              "Resource is configured for explicit locking but no lock service is available");
+        }
+        if (null == lockToken) {
+          throw new LockedException("Required X-Neverpile-Lock-Token header is missing");
+        }
+        if (!lockService.verifyLock(createLockScope(collectionId), lockToken)) {
+          throw new LockedException("Lock token is invalid or expired");
+        }
+        break;
+
+      case IMPLICIT :
+        if (null == lockService) {
+          throw new UnsupportedOperationException(
+              "Resource is configured for implicit locking but no lock service is available");
+        }
+        if (null != lockToken) {
+          // if a lock token is provided it must be valid
+          if (!lockService.verifyLock(createLockScope(collectionId), lockToken)) {
+            throw new LockedException("Lock token is invalid or expired");
+          }
+        } else {
+          result = lockService.tryAcquireLock(createLockScope(collectionId), principal.getName());
+          if (!result.isSuccess()) {
+            throw new LockedException("Failed to implicitly lock a resource");
+          }
+        }
+        break;
+
+      default :
+      case OPTIMISTIC :
+        // nothing to do
+        break;
+    }
+    return result;
+  }
+
+  private String createLockScope(final String collectionId) {
+    return "neverpile:collection:" + collectionId;
   }
 }

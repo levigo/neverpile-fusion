@@ -18,6 +18,10 @@
       <groupId>com.neverpile.commons</groupId>
       <artifactId>neverpile-commons-openapi</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.neverpile.commons</groupId>
+      <artifactId>neverpile-commons-locking</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>com.neverpile</groupId>
