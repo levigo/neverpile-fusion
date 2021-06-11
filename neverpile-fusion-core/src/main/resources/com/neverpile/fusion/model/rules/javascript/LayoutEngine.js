@@ -76,7 +76,7 @@ function putNodeProperty(n, v) {
   var path = Array.prototype.slice.call(arguments).slice(2);
   _root.createPath(path).getProperties().put(n, v);
 }
-function titleVsualization(k, v) {
+function titleVisualization(k, v) {
   _layout.getTitleVisualization().put(k, v);
 }
 
