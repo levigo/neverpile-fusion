@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -35,7 +36,8 @@ public class ContentResource {
   @PostMapping(path = "stream",
       produces = MediaType.APPLICATION_JSON_VALUE,
       consumes = MediaType.TEXT_PLAIN_VALUE)
-  public void get(HttpServletResponse response, @RequestBody String uri) throws IOException {
+  public void get(HttpServletResponse response, @RequestBody String uri,
+      @RequestHeader("X-Authorization") String authInfo) throws IOException {
     URI properURI = URI.create(URLDecoder.decode(uri, StandardCharsets.UTF_8.toString()));
 
     ContentLoader loader = loaders.stream() //
@@ -53,7 +55,7 @@ public class ContentResource {
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
-    });
+    }, authInfo);
     mos.flush();
   }
 }

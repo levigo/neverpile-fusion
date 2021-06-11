@@ -8,5 +8,5 @@ import java.util.function.Consumer;
 public interface ContentLoader {
   boolean canRead(URI contentURI);
 
-  void read(URI uri, Consumer<InputStream> consumer) throws IOException;
+  void read(URI uri, Consumer<InputStream> consumer, String authInfo) throws IOException;
 }
