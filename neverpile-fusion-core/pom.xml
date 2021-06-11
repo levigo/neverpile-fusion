@@ -21,7 +21,6 @@
     <dependency>
       <groupId>com.neverpile.commons</groupId>
       <artifactId>neverpile-commons-util</artifactId>
-      <version>1.0-SNAPSHOT</version>
     </dependency>
 
     <dependency>
