@@ -62,7 +62,7 @@ public class LayoutEngineTest {
 
     JavascriptRule g2 = new JavascriptRule();
     g2.setName("use greeter");
-    g2.setScriptCode("titleVsualization('html', collection.metadata.title + ' (' + collection.createdBy + ')');");
+    g2.setScriptCode("titleVisualization('html', collection.metadata.title + ' (' + collection.createdBy + ')');");
     v1.getElementRules().add(g2);
     
     Collection f = new Collection();

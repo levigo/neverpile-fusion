@@ -162,6 +162,11 @@
       </dependency>
       <dependency>
         <groupId>com.neverpile.commons</groupId>
+        <artifactId>neverpile-commons-util</artifactId>
+        <version>${neverpile-commons.version}</version>
+      </dependency>      
+      <dependency>
+        <groupId>com.neverpile.commons</groupId>
         <artifactId>neverpile-commons-locking</artifactId>
         <version>${neverpile-commons.version}</version>
       </dependency>

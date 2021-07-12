@@ -20,6 +20,10 @@
     </dependency>
     <dependency>
       <groupId>com.neverpile.commons</groupId>
+      <artifactId>neverpile-commons-util</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.neverpile.commons</groupId>
       <artifactId>neverpile-commons-locking</artifactId>
     </dependency>
 
@@ -58,11 +62,6 @@
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-config</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-configuration-processor</artifactId>
-      <optional>true</optional>
     </dependency>
 
     <!-- Backend-frontend-Mapping and general JSON-Support -->
@@ -114,6 +113,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
+        <version>3.2.0</version>
         <executions>
           <execution>
             <goals>
