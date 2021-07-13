@@ -22,17 +22,22 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.neverpile.common.authorization.api.CoreActions;
+import com.neverpile.common.locking.LockService;
+import com.neverpile.common.locking.RequestLockingService;
+import com.neverpile.common.locking.RequestLockingService.RequestScopedLock;
 import com.neverpile.fusion.api.CollectionIdStrategy;
 import com.neverpile.fusion.api.CollectionService;
 import com.neverpile.fusion.api.CollectionTypeService;
 import com.neverpile.fusion.api.exception.PermissionDeniedException;
 import com.neverpile.fusion.authorization.CollectionAuthorizationService;
+import com.neverpile.fusion.configuration.ApplicationConfiguration;
 import com.neverpile.fusion.model.Collection;
 import com.neverpile.fusion.model.VersionMetadata;
 import com.neverpile.fusion.rest.exception.NotAcceptableException;
@@ -65,16 +70,37 @@ public class CollectionResource {
   @Autowired
   private CollectionAuthorizationService collectionAuthorizationService;
 
+  @Autowired
+  private RequestLockingService lockService;
+
+  @Autowired
+  private ApplicationConfiguration configuration;
+
   @PreSignedUrlEnabled
-  @GetMapping(
-      value = "{collectionID}")
+  @GetMapping("{collectionID}")
   @Timed(
       description = "get collection (current version)",
       extraTags = {
           "operation", "retrieve", "target", "collection"
       },
       value = "fusion.collection.get")
-  public Collection getCurrent(@PathVariable("collectionID") final String collectionId) {
+  public ResponseEntity<Collection> getCurrent(@PathVariable("collectionID") final String collectionId) {
+    Collection collection = currentVersion(collectionId);
+
+    return ResponseEntity.ok() //
+        .header(LockService.LOCK_SCOPE_HEADER, createLockScope(collectionId)) //
+        .body(collection);
+  }
+
+  /**
+   * Return the current version of a collection.
+   * 
+   * @param collectionId the collection id
+   * @return the current version of the collection
+   * @throws NotFoundException if the collection does not exist
+   * @throws PermissionDeniedException if the access is denied
+   */
+  private Collection currentVersion(final String collectionId) {
     Collection collection = collectionService.getCurrent(collectionId).orElseThrow(
         () -> new NotFoundException("Collection not found"));
 
@@ -85,15 +111,14 @@ public class CollectionResource {
   }
 
   @PreSignedUrlEnabled
-  @GetMapping(
-      value = "{collectionID}/history/{versionTimestamp}")
+  @GetMapping("{collectionID}/history/{versionTimestamp}")
   @Timed(
       description = "get collection (version specified by timestamp)",
       extraTags = {
           "operation", "retrieve", "target", "collection"
       },
       value = "fusion.collection.get-version")
-  public Collection getVersion(@PathVariable("collectionID") final String collectionId,
+  public ResponseEntity<Collection> getVersion(@PathVariable("collectionID") final String collectionId,
       @PathVariable("versionTimestamp") @DateTimeFormat(
           iso = DateTimeFormat.ISO.DATE_TIME) final Instant versionTimestamp) {
     Collection collection = collectionService.getVersion(collectionId, versionTimestamp).orElseThrow(
@@ -102,12 +127,13 @@ public class CollectionResource {
     if (!collectionAuthorizationService.authorizeCollectionAction(collection, CoreActions.GET))
       throw new PermissionDeniedException();
 
-    return collection;
+    return ResponseEntity.ok() //
+        .header(LockService.LOCK_SCOPE_HEADER, createLockScope(collectionId)) //
+        .body(collection);
   }
 
   @PreSignedUrlEnabled
-  @GetMapping(
-      value = "{collectionID}/history")
+  @GetMapping("{collectionID}/history")
   @Timed(
       description = "get version list",
       extraTags = {
@@ -115,15 +141,14 @@ public class CollectionResource {
       },
       value = "fusion.collection.get-version-list")
   public List<Date> getVersionList(@PathVariable("collectionID") final String collectionId) {
-    if (!collectionAuthorizationService.authorizeCollectionAction(getCurrent(collectionId), CoreActions.GET))
+    if (!collectionAuthorizationService.authorizeCollectionAction(currentVersion(collectionId), CoreActions.GET))
       throw new PermissionDeniedException();
 
     return collectionService.getVersions(collectionId).stream().map(i -> Date.from(i)).collect(Collectors.toList());
   }
 
   @PreSignedUrlEnabled
-  @GetMapping(
-      value = "{collectionID}/historyWithMetadata")
+  @GetMapping("{collectionID}/historyWithMetadata")
   @Timed(
       description = "get history with metadata",
       extraTags = {
@@ -134,7 +159,7 @@ public class CollectionResource {
       @RequestParam(
           name = "groupRelatedVersions",
           defaultValue = "false") final boolean groupRelatedVersions) {
-    if (!collectionAuthorizationService.authorizeCollectionAction(getCurrent(collectionId), CoreActions.GET))
+    if (!collectionAuthorizationService.authorizeCollectionAction(currentVersion(collectionId), CoreActions.GET))
       throw new PermissionDeniedException();
 
     List<VersionMetadata> versionsWithMetadata = collectionService.getVersionsWithMetadata(collectionId);
@@ -227,9 +252,9 @@ public class CollectionResource {
         e.setDateCreated(now);
 
       boolean isUpdate = existing // find element in existing collection
-          .flatMap(c -> c.getElements().stream().filter(xe -> Objects.equals(xe.getId(), e.getId())).findFirst()) 
+          .flatMap(c -> c.getElements().stream().filter(xe -> Objects.equals(xe.getId(), e.getId())).findFirst())
           // is it changed?
-          .map(xe -> !Objects.equals(xe, e)) 
+          .map(xe -> !Objects.equals(xe, e))
           // if there is no existing element, we assume unchanged
           .orElse(false);
 
@@ -253,7 +278,9 @@ public class CollectionResource {
       value = "fusion.collection.save")
   @ResponseStatus(HttpStatus.CREATED)
   public Collection createOrUpdate(@PathVariable("collectionID") final String collectionId,
-      @RequestBody final Collection collection, final Principal principal) {
+      @RequestBody final Collection collection, final Principal principal, @RequestHeader(
+          name = LockService.LOCK_TOKEN_HEADER,
+          required = false) String lockToken) {
     // collection id in JSON must match the one in the path or be null
     if (collection.getId() != null) {
       if (!Objects.equals(collectionId, collection.getId()))
@@ -263,12 +290,26 @@ public class CollectionResource {
 
     Optional<Collection> existing = collectionService.getCurrent(collectionId);
 
-    beforeSave(collection, principal, existing);
+    // lock, but only on updates
+    RequestScopedLock lock = existing.isPresent()
+        ? lockService.acquireLock(createLockScope(collectionId), configuration.getLocking().getMode())
+        : () -> {
+          // no need to unlock
+        };
+    try {
+      beforeSave(collection, principal, existing);
 
-    if (!collectionAuthorizationService.authorizeCollectionAction(collection,
-        existing.isPresent() ? CoreActions.UPDATE : CoreActions.CREATE))
-      throw new PermissionDeniedException();
+      if (!collectionAuthorizationService.authorizeCollectionAction(collection,
+          existing.isPresent() ? CoreActions.UPDATE : CoreActions.CREATE))
+        throw new PermissionDeniedException();
 
-    return collectionService.save(collection);
+      return collectionService.save(collection);
+    } finally {
+      lock.releaseIfLocked();
+    }
+  }
+
+  private String createLockScope(final String collectionId) {
+    return "neverpile:collection:" + collectionId;
   }
 }

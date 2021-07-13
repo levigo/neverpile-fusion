@@ -22,6 +22,10 @@
       <groupId>com.neverpile.commons</groupId>
       <artifactId>neverpile-commons-util</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.neverpile.commons</groupId>
+      <artifactId>neverpile-commons-locking</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>com.neverpile</groupId>

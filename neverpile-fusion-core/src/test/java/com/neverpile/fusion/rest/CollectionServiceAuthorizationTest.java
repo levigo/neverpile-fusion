@@ -24,6 +24,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.neverpile.common.authorization.api.CoreActions;
+import com.neverpile.common.locking.RequestLockingService;
+import com.neverpile.common.locking.RequestLockingService.RequestScopedLock;
 import com.neverpile.fusion.api.CollectionIdStrategy;
 import com.neverpile.fusion.api.CollectionService;
 import com.neverpile.fusion.api.CollectionTypeService;
@@ -35,7 +37,8 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+    webEnvironment = WebEnvironment.RANDOM_PORT)
 public class CollectionServiceAuthorizationTest extends AbstractRestAssuredTest {
   private static final String F = "aCollection";
 
@@ -53,9 +56,11 @@ public class CollectionServiceAuthorizationTest extends AbstractRestAssuredTest 
 
   @MockBean
   CollectionIdStrategy idGenerationStrategy;
-
   @MockBean
   CollectionAuthorizationService collectionAuthorizationService;
+
+  @MockBean
+  RequestLockingService lockingService;
 
   @Autowired
   ObjectMapper objectMapper;
@@ -66,6 +71,12 @@ public class CollectionServiceAuthorizationTest extends AbstractRestAssuredTest 
     when(idGenerationStrategy.creatcollectionId()).thenAnswer((i) -> "TheAnswerIs" + docIdGenerator.getAndIncrement());
     when(idGenerationStrategy.validateCollectionId(any())).thenReturn(true);
     when(mockCollectionTypeService.get(any())).thenReturn(Optional.of(new CollectionType()));
+    when(lockingService.acquireLock(any(), any())).thenAnswer(i -> new RequestScopedLock() {
+      @Override
+      public void releaseIfLocked() {
+        // nothing to do
+      }
+    });
   }
 
   @Test
